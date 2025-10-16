@@ -1,0 +1,86 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+% Packages
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\title{Swasthyalink: A Secure, Family-Centered Digital Healthcare Platform for India}
+
+\author{\IEEEauthorblockN{Author Name}
+\IEEEauthorblockA{\textit{Swasthyalink Project} \\
+Email: support@swasthyalink.com}}
+
+\maketitle
+
+\begin{abstract}
+Swasthyalink is a modern web platform connecting patients, doctors, and family members through secure health records, permissioned access, conversational assistance, and analytics. This paper reviews the platform's goals, architecture, security model, family network design, conversational and ML components, and alignment with Indian digital health initiatives. We summarize strengths, limitations, and a roadmap for future work including interoperability and compliance.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Digital health, Electronic health records, Family-centered care, Firebase, Dialogflow, Generative AI, Health analytics, India, Privacy, Security
+\end{IEEEkeywords}
+
+\section{Introduction}
+Digitization of healthcare requires secure, usable platforms for diverse stakeholders. In India, initiatives such as the National Digital Health Mission (NDHM) emphasize longitudinal records and accessibility. Swasthyalink addresses these needs by enabling patients to manage records, doctors to deliver care, and families to participate with explicit consent and emergency support.
+
+Project objectives include: (1) secure digital records with fine-grained access; (2) family participation via permissioned sharing; (3) clinician dashboards for prescriptions and monitoring; (4) guidance through chatbots and notifications; and (5) analytics-driven insights and recommendations.
+
+\section{System Overview}
+Swasthyalink comprises a React frontend and a Node.js/Express backend integrated with Firebase services. Conversational features use Dialogflow and a Gemini proxy; machine learning (ML) endpoints expose risk assessment and recommendations. User roles include patient, doctor, family member, and admin for doctor onboarding.
+
+\section{Architecture}
+\subsection{Frontend}
+The single-page application (SPA) uses React (with Vite) and Tailwind CSS. Routing and access control utilize private/public route wrappers and an authentication context backed by Firebase Authentication. Pages include patient, doctor, family, and admin dashboards, plus login/registration, settings, and health analytics. Chatbot UI and notification toasts support engagement.
+
+\subsection{Backend}
+The Express server initializes Firebase Admin and integrates Dialogflow (with simulated fallback). A Gemini proxy endpoint leverages \texttt{google-auth-library} for server-side OAuth when invoking the Generative Language API. Domain routes include notifications, presence, patient-doctor relations, OTP, prescriptions, family networks, and admin/doctor operations.
+
+\subsection{Data and Services}
+Firestore persists users, family networks, and clinical artifacts. ML services implement health risk assessment, disease risk prediction, and statistics with validation and normalization helpers, facilitating progressive enhancement to learned models.
+
+\section{Security and Privacy}
+Security practices include transport security (HTTPS in production), security headers, Firebase Authentication for identity, and server-side role checks via middleware for admin and doctor endpoints. Firestore security rules enforce least privilege, and server handlers remove sensitive fields from update payloads.
+
+Compliance alignment draws on HIPAA-inspired principles (access control, auditability) and supports Indian policy goals (e.g., Ayushman Bharat, NDHM). Recommended hardening includes secret management, stricter CORS, rate limiting, expanded audit logging, and optional document-level encryption.
+
+\section{Family Network Model}
+The family module uses explicit requests (pending/accepted/declined) and bidirectional links. Inverse relationship mappings (e.g., Parent\,$\leftrightarrow$\,Child; Spouse\,$\leftrightarrow$\,Spouse) reduce anomalies. Data reside under \texttt{familyNetworks/\{uid\}}, and a migration endpoint ensures reciprocity when missing.
+
+\section{Conversational Agents}
+Dialogflow provides NLU for FAQs and guidance with a simulated fallback to ensure resilience. The Gemini proxy enables LLM-powered responses without exposing client secrets. Typical use cases include appointment guidance, doctor information, and general health tips.
+
+\section{Machine Learning Components}
+Endpoints cover: (i) health risk assessment with validation/normalization, health score, and insights; (ii) health trends from historical data; (iii) disease risk scores with interpretations; (iv) health statistics with optional metric filters; and (v) personalized recommendations. Current logic is heuristic-first with clear interfaces to enable model-based upgrades.
+
+\section{Evaluation}
+\subsection{Strengths}
+Clear role separation and permission model; robust family reciprocity; resilient chatbot integration; ML endpoints enabling analytics; modern, responsive frontend.
+
+\subsection{Limitations}
+Early-stage credential handling requires secret management; some demo flows use in-memory structures; limited automated tests; ML logic is heuristic-first pending clinical validation.
+
+\section{Roadmap and Future Work}
+Priorities include secret management and audit trails, migrating in-memory flows to persistent stores, NDHM Health ID and HL7 FHIR interoperability, learned models with monitoring, improved observability, mobile/PWA hardening, and accessibility/i18n.
+
+\section{Related Work}
+Indian digital health systems emphasize telemedicine, digital records, and public-private integrations. Swasthyalink contributes a family-centered permission model and pragmatic conversational/ML integrations. Future work includes interoperability benchmarking and clinical pilots.
+
+\section{Conclusion}
+Swasthyalink demonstrates a practical approach to secure, family-centered digital care in India. By combining role-based access, conversational assistance, and analytics, it provides a foundation for scalable deployments aligned with national policy. Ongoing work targets compliance, interoperability, robustness, and clinically validated ML.
+
+\section*{Acknowledgments}
+We thank healthcare professionals and the open-source community. This work aligns with India’s digital health initiatives and is licensed under MIT.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
+
+
+

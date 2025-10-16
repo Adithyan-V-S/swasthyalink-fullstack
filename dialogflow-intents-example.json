@@ -1,0 +1,80 @@
+[
+  {
+    "name": "projects/swasthyalink-468105/agent/intents/fever-inquiry",
+    "displayName": "Fever Inquiry",
+    "trainingPhrases": [
+      {
+        "type": "EXAMPLE",
+        "parts": [
+          {
+            "text": "I have a fever"
+          }
+        ]
+      },
+      {
+        "type": "EXAMPLE",
+        "parts": [
+          {
+            "text": "fever symptoms"
+          }
+        ]
+      },
+      {
+        "type": "EXAMPLE",
+        "parts": [
+          {
+            "text": "feeling feverish"
+          }
+        ]
+      }
+    ],
+    "messages": [
+      {
+        "text": {
+          "text": [
+            "For fever, please monitor your temperature and stay hydrated. If symptoms worsen, consult a doctor."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "name": "projects/swasthyalink-468105/agent/intents/appointment-booking",
+    "displayName": "Appointment Booking",
+    "trainingPhrases": [
+      {
+        "type": "EXAMPLE",
+        "parts": [
+          {
+            "text": "I want to book an appointment"
+          }
+        ]
+      },
+      {
+        "type": "EXAMPLE",
+        "parts": [
+          {
+            "text": "Book a doctor appointment"
+          }
+        ]
+      },
+      {
+        "type": "EXAMPLE",
+        "parts": [
+          {
+            "text": "Schedule a visit with my doctor"
+          }
+        ]
+      }
+    ],
+    "messages": [
+      {
+        "text": {
+          "text": [
+            "To book an appointment, go to your dashboard and click 'Book Appointment'. You can select a doctor, date, and time that works for you."
+          ]
+        }
+      }
+    ]
+  }
+]

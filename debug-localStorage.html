@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug localStorage for Admin Doctors</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button.danger { background-color: #dc3545; }
+        button.danger:hover { background-color: #c82333; }
+        button.success { background-color: #28a745; }
+        button.success:hover { background-color: #218838; }
+        .credentials {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Debug localStorage for Admin Doctors</h1>
+        <p>This tool helps debug and fix localStorage issues with admin-created doctors.</p>
+    </div>
+
+    <div class="grid">
+        <div class="container">
+            <h3>📊 Current localStorage Status</h3>
+            <div class="section">
+                <button onclick="checkLocalStorage()">Check localStorage</button>
+                <div id="localStorageStatus"></div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h3>🩺 Admin-Created Doctors</h3>
+            <div class="section">
+                <button onclick="checkAdminDoctors()">Check Admin Doctors</button>
+                <div id="adminDoctorsStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>🔧 Fix localStorage Issues</h3>
+        <div class="section">
+            <button onclick="clearAllData()" class="danger">Clear All localStorage Data</button>
+            <button onclick="createTestDoctors()" class="success">Create Test Doctors</button>
+            <button onclick="fixMockDoctors()" class="success">Fix Mock Doctors Format</button>
+            <div id="fixStatus"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>🧪 Test Doctor Login</h3>
+        <div class="section">
+            <input type="email" id="testEmail" placeholder="Doctor Email" value="doctor1760371140428@swasthyalink.com">
+            <input type="password" id="testPassword" placeholder="Doctor Password" value="Doc140428!">
+            <button onclick="testLogin()">Test Login Logic</button>
+            <div id="testResult"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>📝 Manual Doctor Creation</h3>
+        <div class="section">
+            <input type="text" id="doctorName" placeholder="Doctor Name" value="Dr. Test Doctor">
+            <input type="email" id="doctorEmail" placeholder="Doctor Email" value="doctor1760371140428@swasthyalink.com">
+            <input type="password" id="doctorPassword" placeholder="Doctor Password" value="Doc140428!">
+            <input type="text" id="doctorSpecialization" placeholder="Specialization" value="General Medicine">
+            <input type="text" id="doctorLicense" placeholder="License" value="TEST123456">
+            <input type="text" id="doctorPhone" placeholder="Phone" value="+1234567890">
+            <button onclick="createDoctor()" class="success">Create Doctor</button>
+            <div id="createResult"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>📋 Raw localStorage Data</h3>
+        <div class="section">
+            <button onclick="showRawData()">Show Raw Data</button>
+            <div id="rawData"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            const statusDiv = document.getElementById('localStorageStatus');
+            const mockDoctors = localStorage.getItem('mockDoctors');
+            const testUser = localStorage.getItem('testUser');
+            const testUserRole = localStorage.getItem('testUserRole');
+            const presetAdmin = localStorage.getItem('presetAdmin');
+
+            let html = '<div class="info">';
+            html += '<strong>localStorage Keys:</strong><br>';
+            html += 'mockDoctors: ' + (mockDoctors ? '✅ Present' : '❌ Missing') + '<br>';
+            html += 'testUser: ' + (testUser ? '✅ Present' : '❌ Missing') + '<br>';
+            html += 'testUserRole: ' + (testUserRole ? '✅ Present' : '❌ Missing') + '<br>';
+            html += 'presetAdmin: ' + (presetAdmin ? '✅ Present' : '❌ Missing') + '<br>';
+            html += '</div>';
+
+            if (mockDoctors) {
+                try {
+                    const doctors = JSON.parse(mockDoctors);
+                    html += '<div class="success">';
+                    html += '<strong>Mock Doctors Count:</strong> ' + doctors.length + '<br>';
+                    html += '</div>';
+                } catch (e) {
+                    html += '<div class="error">';
+                    html += '<strong>Error parsing mockDoctors:</strong> ' + e.message + '<br>';
+                    html += '</div>';
+                }
+            }
+
+            statusDiv.innerHTML = html;
+        }
+
+        function checkAdminDoctors() {
+            const statusDiv = document.getElementById('adminDoctorsStatus');
+            const mockDoctors = JSON.parse(localStorage.getItem('mockDoctors') || '[]');
+
+            if (mockDoctors.length === 0) {
+                statusDiv.innerHTML = '<div class="error">No admin-created doctors found in localStorage.</div>';
+            } else {
+                let html = '<div class="success">Found ' + mockDoctors.length + ' doctor(s):</div>';
+                mockDoctors.forEach((doctor, index) => {
+                    html += '<div class="credentials">';
+                    html += '<strong>Doctor ' + (index + 1) + ':</strong><br>';
+                    html += 'ID: ' + (doctor.id || 'N/A') + '<br>';
+                    html += 'UID: ' + (doctor.uid || 'N/A') + '<br>';
+                    html += 'Name: ' + (doctor.name || 'N/A') + '<br>';
+                    html += 'Email: ' + (doctor.email || 'N/A') + '<br>';
+                    html += 'Password: ' + (doctor.password || 'N/A') + '<br>';
+                    html += 'Specialization: ' + (doctor.specialization || 'N/A') + '<br>';
+                    html += 'Role: ' + (doctor.role || 'N/A') + '<br>';
+                    html += '</div>';
+                });
+                statusDiv.innerHTML = html;
+            }
+        }
+
+        function clearAllData() {
+            const statusDiv = document.getElementById('fixStatus');
+            localStorage.removeItem('mockDoctors');
+            localStorage.removeItem('testUser');
+            localStorage.removeItem('testUserRole');
+            localStorage.removeItem('presetAdmin');
+            statusDiv.innerHTML = '<div class="success">✅ All localStorage data cleared.</div>';
+        }
+
+        function createTestDoctors() {
+            const statusDiv = document.getElementById('fixStatus');
+            const testDoctors = [
+                {
+                    id: 'TEST_DOC_1',
+                    uid: 'TEST_DOC_1',
+                    name: 'Dr. Test Doctor 1',
+                    email: 'doctor1758796374014@swasthyakink.com',
+                    password: 'Doc374014!',
+                    specialization: 'General Medicine',
+                    license: 'TEST123456',
+                    phone: '+1234567890',
+                    role: 'doctor',
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 'TEST_DOC_2',
+                    uid: 'TEST_DOC_2',
+                    name: 'Dr. Test Doctor 2',
+                    email: 'doctor1760371140428@swasthyalink.com',
+                    password: 'Doc140428!',
+                    specialization: 'Cardiology',
+                    license: 'TEST789012',
+                    phone: '+1234567891',
+                    role: 'doctor',
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                }
+            ];
+
+            localStorage.setItem('mockDoctors', JSON.stringify(testDoctors));
+            statusDiv.innerHTML = '<div class="success">✅ Test doctors created successfully!</div>';
+        }
+
+        function fixMockDoctors() {
+            const statusDiv = document.getElementById('fixStatus');
+            const mockDoctors = JSON.parse(localStorage.getItem('mockDoctors') || '[]');
+            
+            if (mockDoctors.length === 0) {
+                statusDiv.innerHTML = '<div class="warning">No mock doctors to fix. Create some first.</div>';
+                return;
+            }
+
+            // Fix any missing required fields
+            const fixedDoctors = mockDoctors.map(doctor => ({
+                id: doctor.id || `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                uid: doctor.uid || doctor.id || `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: doctor.name || 'Dr. Unknown',
+                email: doctor.email || '',
+                password: doctor.password || '',
+                specialization: doctor.specialization || 'General Medicine',
+                license: doctor.license || 'UNKNOWN',
+                phone: doctor.phone || '+0000000000',
+                role: doctor.role || 'doctor',
+                status: doctor.status || 'active',
+                createdAt: doctor.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }));
+
+            localStorage.setItem('mockDoctors', JSON.stringify(fixedDoctors));
+            statusDiv.innerHTML = '<div class="success">✅ Mock doctors format fixed!</div>';
+        }
+
+        function testLogin() {
+            const statusDiv = document.getElementById('testResult');
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            if (!email || !password) {
+                statusDiv.innerHTML = '<div class="error">Please enter both email and password.</div>';
+                return;
+            }
+
+            const mockDoctors = JSON.parse(localStorage.getItem('mockDoctors') || '[]');
+            const doctorMatch = mockDoctors.find(doc =>
+                doc.email?.toLowerCase().trim() === email.toLowerCase().trim() && 
+                doc.password?.trim() === password.trim()
+            );
+
+            if (doctorMatch) {
+                statusDiv.innerHTML = '<div class="success">✅ Doctor credentials found! Login should work.</div>' +
+                    '<div class="credentials">' +
+                    'Found Doctor:<br>' +
+                    'Name: ' + doctorMatch.name + '<br>' +
+                    'Email: ' + doctorMatch.email + '<br>' +
+                    'Specialization: ' + doctorMatch.specialization + '<br>' +
+                    '</div>';
+            } else {
+                statusDiv.innerHTML = '<div class="error">❌ Doctor credentials not found.</div>' +
+                    '<div class="info">Available doctors:</div>';
+                
+                mockDoctors.forEach((doc, index) => {
+                    statusDiv.innerHTML += '<div class="credentials">' +
+                        'Doctor ' + (index + 1) + ': ' + doc.email + ' / ' + doc.password +
+                        '</div>';
+                });
+            }
+        }
+
+        function createDoctor() {
+            const statusDiv = document.getElementById('createResult');
+            const doctor = {
+                id: 'DOC_' + Date.now(),
+                uid: 'DOC_' + Date.now(),
+                name: document.getElementById('doctorName').value,
+                email: document.getElementById('doctorEmail').value,
+                password: document.getElementById('doctorPassword').value,
+                specialization: document.getElementById('doctorSpecialization').value,
+                license: document.getElementById('doctorLicense').value,
+                phone: document.getElementById('doctorPhone').value,
+                role: 'doctor',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            const existingDoctors = JSON.parse(localStorage.getItem('mockDoctors') || '[]');
+            existingDoctors.push(doctor);
+            localStorage.setItem('mockDoctors', JSON.stringify(existingDoctors));
+
+            statusDiv.innerHTML = '<div class="success">✅ Doctor created successfully!</div>' +
+                '<div class="credentials">' +
+                'Doctor Details:<br>' +
+                'ID: ' + doctor.id + '<br>' +
+                'Name: ' + doctor.name + '<br>' +
+                'Email: ' + doctor.email + '<br>' +
+                'Password: ' + doctor.password + '<br>' +
+                'Specialization: ' + doctor.specialization + '<br>' +
+                '</div>';
+        }
+
+        function showRawData() {
+            const statusDiv = document.getElementById('rawData');
+            const mockDoctors = localStorage.getItem('mockDoctors');
+            
+            statusDiv.innerHTML = '<div class="credentials">' +
+                'Raw mockDoctors data:<br>' +
+                (mockDoctors || 'No data found') +
+                '</div>';
+        }
+
+        // Auto-check on page load
+        window.onload = function() {
+            checkLocalStorage();
+            checkAdminDoctors();
+        };
+    </script>
+</body>
+</html>
+
+
+

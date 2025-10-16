@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Doctor Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .credentials {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Admin Doctor Login Functionality</h1>
+        
+        <div class="test-section info">
+            <h3>Test Instructions</h3>
+            <p>This page helps you test if admin-created doctors can successfully login and access the doctor dashboard.</p>
+            <ol>
+                <li>First, go to the admin dashboard and create a new doctor</li>
+                <li>Note down the email and password provided</li>
+                <li>Use those credentials to login as a doctor</li>
+                <li>Verify you can access the doctor dashboard</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>Step 1: Check Admin-Created Doctors</h3>
+            <button onclick="checkAdminDoctors()">Check localStorage for Admin-Created Doctors</button>
+            <div id="adminDoctorsResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Step 2: Test Doctor Login</h3>
+            <p>Enter the email and password of an admin-created doctor:</p>
+            <input type="email" id="doctorEmail" placeholder="Doctor Email" style="width: 300px; padding: 8px; margin: 5px;">
+            <br>
+            <input type="password" id="doctorPassword" placeholder="Doctor Password" style="width: 300px; padding: 8px; margin: 5px;">
+            <br>
+            <button onclick="testDoctorLogin()">Test Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Step 3: Verify Doctor Dashboard Access</h3>
+            <button onclick="checkDoctorAccess()">Check if Doctor Dashboard is Accessible</button>
+            <div id="accessResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Step 4: Create Test Doctor (if needed)</h3>
+            <button onclick="createTestDoctor()">Create Test Doctor in localStorage</button>
+            <div id="createResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Step 5: Fix localStorage Issues</h3>
+            <button onclick="fixLocalStorage()">Fix localStorage Data Format</button>
+            <div id="fixResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Safely parse mockDoctors from localStorage and auto-fix if malformed
+        function safeGetMockDoctors() {
+            const raw = localStorage.getItem('mockDoctors');
+            if (!raw) return [];
+            try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.warn('mockDoctors contained invalid JSON, clearing it:', e);
+                localStorage.removeItem('mockDoctors');
+                return [];
+            }
+        }
+
+        function checkAdminDoctors() {
+            const resultDiv = document.getElementById('adminDoctorsResult');
+            const mockDoctors = safeGetMockDoctors();
+            
+            if (mockDoctors.length === 0) {
+                resultDiv.innerHTML = '<div class="error">No admin-created doctors found in localStorage. Please create a doctor through the admin dashboard first.</div>';
+            } else {
+                let html = '<div class="success">Found ' + mockDoctors.length + ' admin-created doctor(s):</div>';
+                mockDoctors.forEach((doctor, index) => {
+                    html += '<div class="credentials">';
+                    html += '<strong>Doctor ' + (index + 1) + ':</strong><br>';
+                    html += 'Email: ' + doctor.email + '<br>';
+                    html += 'Password: ' + doctor.password + '<br>';
+                    html += 'Name: ' + doctor.name + '<br>';
+                    html += 'Specialization: ' + doctor.specialization + '<br>';
+                    html += '</div>';
+                });
+                resultDiv.innerHTML = html;
+            }
+        }
+
+        function testDoctorLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            const email = document.getElementById('doctorEmail').value;
+            const password = document.getElementById('doctorPassword').value;
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="error">Please enter both email and password.</div>';
+                return;
+            }
+
+            const mockDoctors = safeGetMockDoctors();
+            const doctorMatch = mockDoctors.find(doc =>
+                doc.email?.toLowerCase().trim() === email.toLowerCase().trim() && 
+                doc.password?.trim() === password.trim()
+            );
+
+            if (doctorMatch) {
+                resultDiv.innerHTML = '<div class="success">✅ Doctor credentials found! This doctor should be able to login and access the doctor dashboard.</div>';
+            } else {
+                resultDiv.innerHTML = '<div class="error">❌ Doctor credentials not found. Please check the email and password, or create a doctor through the admin dashboard first.</div>';
+            }
+        }
+
+        function checkDoctorAccess() {
+            const resultDiv = document.getElementById('accessResult');
+            
+            // Check if we're on the correct domain/path
+            const currentPath = window.location.pathname;
+            const isOnCorrectDomain = window.location.hostname === 'localhost' || window.location.hostname.includes('swasthyalink');
+            
+            let html = '<div class="info">';
+            html += '<strong>Current Environment:</strong><br>';
+            html += 'URL: ' + window.location.href + '<br>';
+            html += 'Path: ' + currentPath + '<br>';
+            html += 'Domain Check: ' + (isOnCorrectDomain ? '✅ Correct' : '❌ Incorrect') + '<br>';
+            html += '</div>';
+
+            if (isOnCorrectDomain) {
+                html += '<div class="success">✅ You are on the correct domain. You can now test the actual login functionality by navigating to the login page.</div>';
+                html += '<br><a href="/login" target="_blank"><button>Go to Login Page</button></a>';
+            } else {
+                html += '<div class="error">❌ You need to be on the correct domain to test the login functionality.</div>';
+            }
+
+            resultDiv.innerHTML = html;
+        }
+
+        function createTestDoctor() {
+            const resultDiv = document.getElementById('createResult');
+            
+            const testDoctor = {
+                id: 'TEST_DOC_' + Date.now(),
+                uid: 'TEST_DOC_' + Date.now(),
+                name: 'Dr. Test Doctor',
+                email: 'testdoctor@swasthyalink.com',
+                password: 'TestDoc123!',
+                specialization: 'General Medicine',
+                license: 'TEST123456',
+                phone: '+1234567890',
+                role: 'doctor',
+                status: 'active',
+                createdAt: new Date().toISOString()
+            };
+
+            const existingDoctors = safeGetMockDoctors();
+            existingDoctors.push(testDoctor);
+            localStorage.setItem('mockDoctors', JSON.stringify(existingDoctors));
+
+            resultDiv.innerHTML = '<div class="success">✅ Test doctor created successfully!</div>' +
+                '<div class="credentials">' +
+                '<strong>Test Doctor Credentials:</strong><br>' +
+                'Email: ' + testDoctor.email + '<br>' +
+                'Password: ' + testDoctor.password + '<br>' +
+                'Name: ' + testDoctor.name + '<br>' +
+                'Specialization: ' + testDoctor.specialization + '<br>' +
+                '</div>';
+        }
+
+        function fixLocalStorage() {
+            const resultDiv = document.getElementById('fixResult');
+            
+            // Check if there are any issues with the current localStorage
+            const mockDoctors = safeGetMockDoctors();
+            
+            if (mockDoctors.length === 0) {
+                resultDiv.innerHTML = '<div class="error">No doctors found. Create some first.</div>';
+                return;
+            }
+
+            // Fix any missing required fields
+            const fixedDoctors = mockDoctors.map(doctor => ({
+                id: doctor.id || `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                uid: doctor.uid || doctor.id || `DOC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: doctor.name || 'Dr. Unknown',
+                email: doctor.email || '',
+                password: doctor.password || '',
+                specialization: doctor.specialization || 'General Medicine',
+                license: doctor.license || 'UNKNOWN',
+                phone: doctor.phone || '+0000000000',
+                role: doctor.role || 'doctor',
+                status: doctor.status || 'active',
+                createdAt: doctor.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }));
+
+            localStorage.setItem('mockDoctors', JSON.stringify(fixedDoctors));
+            
+            resultDiv.innerHTML = '<div class="success">✅ localStorage data fixed!</div>' +
+                '<div class="info">Fixed ' + fixedDoctors.length + ' doctor records.</div>';
+        }
+
+        // Auto-check on page load
+        window.onload = function() {
+            checkAdminDoctors();
+        };
+    </script>
+</body>
+</html>
