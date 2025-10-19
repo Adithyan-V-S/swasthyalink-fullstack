@@ -6,7 +6,14 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-const db = admin.firestore();
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+} else {
+  console.log('⚠️ Firebase Firestore not available in cleanup script - skipping');
+  process.exit(0);
+}
 
 /**
  * Cleanup script to remove duplicate family members

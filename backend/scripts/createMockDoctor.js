@@ -15,7 +15,14 @@ if (!admin.apps.length) {
   });
 }
 
-const db = admin.firestore();
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+} else {
+  console.log('⚠️ Firebase Firestore not available in createMockDoctor script - skipping');
+  process.exit(0);
+}
 
 async function createMockDoctorData() {
   try {

@@ -6,7 +6,14 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-const db = admin.firestore();
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+} else {
+  console.log('⚠️ Firebase Firestore not available in migrate script - skipping');
+  process.exit(0);
+}
 
 /**
  * Migration script to ensure all family connections are bidirectional
