@@ -323,8 +323,22 @@ const Login = () => {
       try {
         // Create the test user account in Firebase Authentication
         await createTestUserAccount(testUser);
-        navigate(testUser.redirect);
-        console.log(`Navigation to ${testUser.redirect} completed`);
+        
+        // Force set the role in localStorage for immediate access
+        localStorage.setItem('testUserRole', testUser.role);
+        console.log(`✅ Set testUserRole to: ${testUser.role}`);
+        
+        // Force a storage event to trigger AuthContext update
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'testUserRole',
+          newValue: testUser.role
+        }));
+        
+        // Small delay to ensure AuthContext updates
+        setTimeout(() => {
+          navigate(testUser.redirect);
+          console.log(`Navigation to ${testUser.redirect} completed`);
+        }, 100);
       } catch (error) {
         console.error("Error creating test user or navigation:", error);
         setError("Failed to create test account. Please try again.");

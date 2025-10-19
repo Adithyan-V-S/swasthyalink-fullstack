@@ -138,30 +138,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   const canAccessRoute = (requiredRole = null) => {
+    const authStatus = isAuthenticated();
+    const emailStatus = isEmailVerified();
+    const role = getUserRole();
+    
     console.log('🔐 Checking route access:', {
       requiredRole,
-      isAuthenticated: isAuthenticated(),
-      isEmailVerified: isEmailVerified(),
-      userRole: getUserRole()
+      isAuthenticated: authStatus,
+      isEmailVerified: emailStatus,
+      userRole: role,
+      currentUser: currentUser?.email,
+      testUser: localStorage.getItem('testUser'),
+      testUserRole: localStorage.getItem('testUserRole')
     });
     
-    if (!isAuthenticated()) {
+    if (!authStatus) {
       console.log('🔐 Access denied: Not authenticated');
       return false;
     }
-    if (!isEmailVerified()) {
+    if (!emailStatus) {
       console.log('🔐 Access denied: Email not verified');
       return false;
     }
     
     if (requiredRole) {
       // Special handling for family dashboard - patients can access it
-      if (requiredRole === 'family' && getUserRole() === 'patient') {
+      if (requiredRole === 'family' && role === 'patient') {
         console.log('🔐 Access granted: Patient can access family dashboard');
         return true;
       }
-      const hasAccess = getUserRole() === requiredRole;
-      console.log('🔐 Role check result:', hasAccess);
+      const hasAccess = role === requiredRole;
+      console.log('🔐 Role check result:', hasAccess, `(${role} === ${requiredRole})`);
       return hasAccess;
     }
     
