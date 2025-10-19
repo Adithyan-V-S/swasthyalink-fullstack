@@ -12,12 +12,20 @@ const PORT = process.env.PORT || 3001;
 
 // Initialize Firebase Admin
 try {
-  const serviceAccount = require('./credentialss.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: 'swasthyakink'
-  });
-  console.log('✅ Firebase Admin initialized successfully for project: swasthyakink');
+  // Use environment variables for production, fallback to credentials file for local dev
+  if (process.env.NODE_ENV === 'production') {
+    admin.initializeApp({
+      projectId: 'swasthyakink'
+    });
+    console.log('✅ Firebase Admin initialized successfully for project: swasthyakink (production mode)');
+  } else {
+    const serviceAccount = require('./credentialss.json');
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: 'swasthyakink'
+    });
+    console.log('✅ Firebase Admin initialized successfully for project: swasthyakink (development mode)');
+  }
 } catch (error) {
   console.error('❌ Failed to initialize Firebase Admin:', error.message);
 }
