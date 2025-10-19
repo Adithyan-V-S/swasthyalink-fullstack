@@ -8,7 +8,13 @@ const otpService = require('./otpService');
 
 class PatientDoctorService {
   constructor() {
-    this.db = admin.firestore();
+    // Firebase Firestore - only initialize if Firebase Admin is available
+    if (admin.apps.length > 0) {
+      this.db = admin.firestore();
+    } else {
+      console.log('⚠️ Firebase Firestore not available in PatientDoctorService - using in-memory storage');
+      this.db = null;
+    }
   }
 
   /**

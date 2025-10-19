@@ -7,7 +7,13 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-const db = admin.firestore();
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+} else {
+  console.log('⚠️ Firebase Firestore not available in OTP service - using in-memory storage');
+}
 
 class OTPService {
   constructor() {
