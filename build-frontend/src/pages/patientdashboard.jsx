@@ -262,20 +262,15 @@ const PatientDashboard = () => {
 
   const loadFamilyMembers = async () => {
     try {
-      const response = await fetch('/api/patient-doctor/patient/doctors', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${await currentUser.getIdToken()}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('👥 Family members loaded from API:', data);
-        setFamilyMembers(data.connectedDoctors || []);
+      // Use the service that has the correct backend URL
+      const { getConnectedDoctors } = await import('../services/patientDoctorService');
+      const response = await getConnectedDoctors();
+      
+      if (response.success) {
+        console.log('👥 Family members loaded from API:', response);
+        setFamilyMembers(response.connectedDoctors || []);
       } else {
-        console.error('❌ Failed to load family members:', response.status);
+        console.error('❌ Failed to load family members:', response.error);
         setFamilyMembers([]);
       }
     } catch (error) {

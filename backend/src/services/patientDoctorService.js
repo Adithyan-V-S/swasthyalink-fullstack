@@ -194,6 +194,12 @@ class PatientDoctorService {
    */
   async getPendingRequests(patientId) {
     try {
+      // Check if Firebase is available
+      if (!this.db) {
+        console.log('⚠️ Firebase not available, returning empty pending requests list');
+        return { success: true, requests: [] };
+      }
+
       // Simplified query to avoid index requirements
       const requestsQuery = await this.db.collection('patient_doctor_requests')
         .where('patientId', '==', patientId)
@@ -330,6 +336,12 @@ class PatientDoctorService {
    */
   async getConnectedDoctors(patientId) {
     try {
+      // Check if Firebase is available
+      if (!this.db) {
+        console.log('⚠️ Firebase not available, returning empty connected doctors list');
+        return { success: true, connectedDoctors: [] };
+      }
+
       // Get all relationships for this patient
       const relationshipsQuery = await this.db.collection('patient_doctor_relationships')
         .where('patientId', '==', patientId)
