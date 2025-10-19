@@ -4,7 +4,7 @@ class DialogflowService {
   constructor() {
     this.apiUrl = import.meta.env.VITE_API_BASE_URL
       ? `${import.meta.env.VITE_API_BASE_URL}/api/chatbot`
-      : '/api/chatbot';
+      : 'https://swasthyalink-backend-v2.onrender.com/api/chatbot';
     this.useLocalFallback = true; // Set to true to use local fallback when backend is unavailable
   }
 
