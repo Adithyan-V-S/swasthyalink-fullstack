@@ -8,7 +8,13 @@ const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const otpService = require('../services/otpService');
 
-const db = admin.firestore();
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+} else {
+  console.log('⚠️ Firebase Firestore not available in PatientDoctorModel - using in-memory storage');
+}
 
 // Nodemailer transporter setup (use environment variables for production)
 const transporter = nodemailer.createTransport({

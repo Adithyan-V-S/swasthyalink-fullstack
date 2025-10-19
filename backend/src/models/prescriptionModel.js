@@ -6,7 +6,16 @@
 const admin = require('firebase-admin');
 const { v4: uuidv4 } = require('uuid');
 
-const db = admin.firestore();
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+let serverTimestamp = null;
+
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+  serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
+} else {
+  console.log('⚠️ Firebase Firestore not available in PrescriptionModel - using in-memory storage');
+}
 
 class PrescriptionModel {
   /**
@@ -212,7 +221,7 @@ class PrescriptionModel {
         },
         priority: prescription.priority,
         read: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: serverTimestamp ? serverTimestamp() : new Date()
       };
 
       await db.collection('notifications').add(notificationData);
