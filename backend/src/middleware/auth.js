@@ -4,10 +4,25 @@
  */
 
 const admin = require('firebase-admin');
-const { getFirestore, collection, getDocs, query, where } = require('firebase-admin/firestore');
 const bcrypt = require('bcryptjs');
 
-const db = getFirestore();
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+let collection = null;
+let getDocs = null;
+let query = null;
+let where = null;
+
+if (admin.apps.length > 0) {
+  const firestore = require('firebase-admin/firestore');
+  db = firestore.getFirestore();
+  collection = firestore.collection;
+  getDocs = firestore.getDocs;
+  query = firestore.query;
+  where = firestore.where;
+} else {
+  console.log('⚠️ Firebase Firestore not available in auth middleware - using fallback auth');
+}
 
 /**
  * Admin authentication middleware
