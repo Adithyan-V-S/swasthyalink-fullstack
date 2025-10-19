@@ -305,8 +305,19 @@ const { v4: uuidv4 } = require('uuid');
 
 // In-memory data stores
 const familyRequests = [];
-const db = admin.firestore();
-const { arrayUnion, serverTimestamp } = admin.firestore.FieldValue;
+
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+let arrayUnion = null;
+let serverTimestamp = null;
+
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+  arrayUnion = admin.firestore.FieldValue.arrayUnion;
+  serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
+} else {
+  console.log('⚠️ Firebase Firestore not available - using in-memory storage');
+}
 
 const mockUsers = [
   { 
