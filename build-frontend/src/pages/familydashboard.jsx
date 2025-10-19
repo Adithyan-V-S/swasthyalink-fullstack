@@ -32,8 +32,6 @@ const mockFamilyMember = {
 const FamilyDashboard = () => {
   const { currentUser, userRole } = useAuth();
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isEmergencyMode, setIsEmergencyMode] = useState(false);
-  const [emergencyAccessExpiry, setEmergencyAccessExpiry] = useState(null);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [showAddMember, setShowAddMember] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -133,47 +131,28 @@ const FamilyDashboard = () => {
     // Filter records based on access level
     let accessibleRecords = [];
     
-    if (isEmergencyMode) {
-      // In emergency mode, show all emergency records
-      accessibleRecords = mockSharedRecords.filter(record => record.isEmergency);
-    } else {
-      // Filter based on family member's access level
-      switch (mockFamilyMember.accessLevel) {
-        case "full":
-          accessibleRecords = mockSharedRecords;
-          break;
-        case "limited":
-          accessibleRecords = mockSharedRecords.filter(record => 
-            record.accessLevel === "limited" || record.accessLevel === "emergency"
-          );
-          break;
-        case "emergency":
-          accessibleRecords = mockSharedRecords.filter(record => 
-            record.accessLevel === "emergency"
-          );
-          break;
-        default:
-          accessibleRecords = [];
-      }
+    // Filter based on family member's access level
+    switch (mockFamilyMember.accessLevel) {
+      case "full":
+        accessibleRecords = mockSharedRecords;
+        break;
+      case "limited":
+        accessibleRecords = mockSharedRecords.filter(record => 
+          record.accessLevel === "limited" || record.accessLevel === "emergency"
+        );
+        break;
+      case "emergency":
+        accessibleRecords = mockSharedRecords.filter(record => 
+          record.accessLevel === "emergency"
+        );
+        break;
+      default:
+        accessibleRecords = [];
     }
     
     setFilteredRecords(accessibleRecords);
-  }, [isEmergencyMode]);
+  }, []);
 
-  const activateEmergencyAccess = () => {
-    setIsEmergencyMode(true);
-    const expiryTime = new Date();
-    expiryTime.setHours(expiryTime.getHours() + 24); // 24 hours from now
-    setEmergencyAccessExpiry(expiryTime);
-    
-    // In a real app, this would trigger notifications to the patient
-    console.log("Emergency access activated for 24 hours");
-  };
-
-  const deactivateEmergencyAccess = () => {
-    setIsEmergencyMode(false);
-    setEmergencyAccessExpiry(null);
-  };
 
   const getAccessLevelColor = (level) => {
     switch (level) {
@@ -291,8 +270,8 @@ const FamilyDashboard = () => {
             <div className="text-2xl font-bold">{familyMembers.length}</div>
           </div>
           <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white rounded-xl px-4 py-3">
-            <div className="text-xs opacity-80">Emergency</div>
-            <div className="text-2xl font-bold">{isEmergencyMode ? 'ON' : 'OFF'}</div>
+            <div className="text-xs opacity-80">Status</div>
+            <div className="text-2xl font-bold">Active</div>
           </div>
         </div>
       </section>
@@ -307,11 +286,6 @@ const FamilyDashboard = () => {
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getAccessLevelColor(mockFamilyMember.accessLevel)}`}>
                 {mockFamilyMember.accessLevel} Access
               </span>
-              {isEmergencyMode && (
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
-                  Emergency Active
-                </span>
-              )}
             </div>
           </div>
 
@@ -339,24 +313,6 @@ const FamilyDashboard = () => {
           </div>
         </div>
 
-        {/* Emergency Control Card */}
-        <div className="lg:col-span-3 bg-white rounded-2xl shadow-lg p-8">
-          <h3 className="text-xl font-bold text-red-700 mb-4">Emergency Access</h3>
-          <p className="text-sm text-gray-600">
-            {isEmergencyMode
-              ? "Emergency access is active. You can view critical records."
-              : "Activate emergency access to view critical records when needed."}
-          </p>
-          {isEmergencyMode && emergencyAccessExpiry && (
-            <p className="text-xs text-red-600 mt-2">Expires: {emergencyAccessExpiry.toLocaleString()}</p>
-          )}
-          <button
-            onClick={isEmergencyMode ? deactivateEmergencyAccess : activateEmergencyAccess}
-            className={`mt-4 w-full px-4 py-2 rounded-lg font-semibold transition-colors ${isEmergencyMode ? 'bg-gray-700 text-white hover:bg-gray-800' : 'bg-red-600 text-white hover:bg-red-700'}`}
-          >
-            {isEmergencyMode ? 'Deactivate' : 'Activate'}
-          </button>
-        </div>
 
         {/* Quick Actions */}
         <div className="lg:col-span-3 bg-white rounded-2xl shadow-lg p-8">
@@ -381,11 +337,6 @@ const FamilyDashboard = () => {
             <span className="text-sm text-gray-600">
               Showing {filteredRecords.length} of {mockSharedRecords.length} records
             </span>
-            {isEmergencyMode && (
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                Emergency Mode
-              </span>
-            )}
           </div>
         </div>
         
@@ -397,10 +348,7 @@ const FamilyDashboard = () => {
               </svg>
             </div>
             <p className="text-gray-600">
-              {isEmergencyMode 
-                ? "No emergency records available."
-                : "No health records are currently shared with your access level."
-              }
+              No health records are currently shared with your access level.
             </p>
           </div>
         ) : (
@@ -681,8 +629,8 @@ const FamilyDashboard = () => {
               <div className="text-sm font-bold">{familyMembers.length}</div>
             </div>
             <div className="bg-amber-50 text-amber-800 rounded-lg p-2 text-center">
-              <div className="text-[10px] uppercase">Emergency</div>
-              <div className="text-sm font-bold">{isEmergencyMode ? 'On' : 'Off'}</div>
+              <div className="text-[10px] uppercase">Status</div>
+              <div className="text-sm font-bold">Active</div>
             </div>
           </div>
           
