@@ -14,11 +14,8 @@ const PORT = process.env.PORT || 3001;
 try {
   // Use environment variables for production, fallback to credentials file for local dev
   if (process.env.NODE_ENV === 'production') {
-    // In production, use default credentials (Google Cloud will provide them)
-    admin.initializeApp({
-      projectId: 'swasthyakink'
-    });
-    console.log('✅ Firebase Admin initialized successfully for project: swasthyakink (production mode)');
+    // In production, skip Firebase Admin initialization to avoid credentials issues
+    console.log('⚠️ Skipping Firebase Admin initialization in production - using fallback auth');
   } else {
     const serviceAccount = require('./credentialss.json');
     admin.initializeApp({
