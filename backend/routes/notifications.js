@@ -71,6 +71,7 @@ router.get('/:userId', async (req, res) => {
       const notificationsRef = db.collection('notifications');
       const query = notificationsRef
         .where('recipientId', '==', userId)
+        .where('isDisabled', '==', false)
         .limit(parseInt(limit));
 
       const snapshot = await query.get();
@@ -104,14 +105,14 @@ router.get('/:userId', async (req, res) => {
     } else {
       // Use in-memory storage
       const userNotifications = notificationsStore
-        .filter(n => n.recipientId === userId)
+        .filter(n => n.recipientId === userId && !n.isDisabled)
         .slice(parseInt(offset), parseInt(offset) + parseInt(limit))
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       res.json({
         success: true,
         notifications: userNotifications,
-        total: notificationsStore.filter(n => n.recipientId === userId).length,
+        total: notificationsStore.filter(n => n.recipientId === userId && !n.isDisabled).length,
         storage: 'memory'
       });
     }
@@ -173,7 +174,8 @@ router.patch('/user/:userId/read-all', async (req, res) => {
       const notificationsRef = db.collection('notifications');
       const query = notificationsRef
         .where('recipientId', '==', userId)
-        .where('read', '==', false);
+        .where('read', '==', false)
+        .where('isDisabled', '==', false);
 
       const snapshot = await query.get();
       const batch = db.batch();
@@ -195,7 +197,7 @@ router.patch('/user/:userId/read-all', async (req, res) => {
       // Use in-memory storage
       let count = 0;
       notificationsStore.forEach(notification => {
-        if (notification.recipientId === userId && !notification.read) {
+        if (notification.recipientId === userId && !notification.read && !notification.isDisabled) {
           notification.read = true;
           notification.readAt = new Date().toISOString();
           count++;
@@ -216,19 +218,25 @@ router.patch('/user/:userId/read-all', async (req, res) => {
   }
 });
 
-// Delete notification
+// Disable notification (soft delete - preserves data)
 router.delete('/:notificationId', async (req, res) => {
   try {
     const { notificationId } = req.params;
 
     if (db) {
-      // Use Firestore
-      await db.collection('notifications').doc(notificationId).delete();
+      // Use Firestore - soft delete by marking as disabled
+      await db.collection('notifications').doc(notificationId).update({
+        isDisabled: true,
+        disabledAt: new Date().toISOString(),
+        disabledBy: req.user?.uid || 'system'
+      });
     } else {
-      // Use in-memory storage
+      // Use in-memory storage - mark as disabled
       const notificationIndex = notificationsStore.findIndex(n => n.id == notificationId);
       if (notificationIndex !== -1) {
-        notificationsStore.splice(notificationIndex, 1);
+        notificationsStore[notificationIndex].isDisabled = true;
+        notificationsStore[notificationIndex].disabledAt = new Date().toISOString();
+        notificationsStore[notificationIndex].disabledBy = req.user?.uid || 'system';
       } else {
         return res.status(404).json({
           success: false,
@@ -239,13 +247,13 @@ router.delete('/:notificationId', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Notification deleted'
+      message: 'Notification disabled (data preserved)'
     });
   } catch (error) {
-    console.error('Error deleting notification:', error);
+    console.error('Error disabling notification:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete notification'
+      error: 'Failed to disable notification'
     });
   }
 });
@@ -331,14 +339,17 @@ router.get('/:userId/stats', async (req, res) => {
       // Use Firestore
       const notificationsRef = db.collection('notifications');
 
-      // Get total notifications
-      const totalQuery = notificationsRef.where('recipientId', '==', userId);
+      // Get total notifications (excluding disabled)
+      const totalQuery = notificationsRef
+        .where('recipientId', '==', userId)
+        .where('isDisabled', '==', false);
       const totalSnapshot = await totalQuery.get();
 
-      // Get unread notifications
+      // Get unread notifications (excluding disabled)
       const unreadQuery = notificationsRef
         .where('recipientId', '==', userId)
-        .where('read', '==', false);
+        .where('read', '==', false)
+        .where('isDisabled', '==', false);
       const unreadSnapshot = await unreadQuery.get();
 
       // Get notifications by type
@@ -360,7 +371,7 @@ router.get('/:userId/stats', async (req, res) => {
       });
     } else {
       // Use in-memory storage
-      const userNotifications = notificationsStore.filter(n => n.recipientId === userId);
+      const userNotifications = notificationsStore.filter(n => n.recipientId === userId && !n.isDisabled);
       const unreadNotifications = userNotifications.filter(n => !n.read);
 
       // Get notifications by type

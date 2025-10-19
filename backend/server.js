@@ -437,7 +437,10 @@ app.post('/api/family/request', async (req, res) => {
     const fromNetworkRef = doc(db, 'familyNetworks', fromUid);
     const fromNetworkSnap = await getDoc(fromNetworkRef);
     const fromMembers = fromNetworkSnap.exists() ? fromNetworkSnap.data().members || [] : [];
-    const alreadyFamily = fromMembers.some(member => member.email === toEmail);
+    const alreadyFamily = fromMembers.some(member => 
+      (member.email && member.email === toEmail) || 
+      (member.uid && member.uid === toUid)
+    );
 
     if (alreadyFamily) {
       return res.status(409).json({ success: false, error: 'Already in family network' });
@@ -502,35 +505,55 @@ app.post('/api/family/request/:id/accept', async (req, res) => {
       addedAt: serverTimestamp()
     };
 
-    await updateDoc(fromNetworkRef, {
-      members: arrayUnion(fromMember),
-      updatedAt: serverTimestamp()
-    }).catch(async (error) => {
-      if (error.code === 5) { // NOT_FOUND
-        await setDoc(fromNetworkRef, {
-          members: [fromMember],
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-      } else {
-        throw error;
-      }
-    });
+    // Check if member already exists before adding
+    const fromNetworkDoc = await getDoc(fromNetworkRef);
+    const fromExistingMembers = fromNetworkDoc.exists() ? fromNetworkDoc.data().members || [] : [];
+    const fromMemberExists = fromExistingMembers.some(member => 
+      (member.email && member.email === fromMember.email) || 
+      (member.uid && member.uid === fromMember.uid)
+    );
 
-    await updateDoc(toNetworkRef, {
-      members: arrayUnion(toMember),
-      updatedAt: serverTimestamp()
-    }).catch(async (error) => {
-      if (error.code === 5) { // NOT_FOUND
-        await setDoc(toNetworkRef, {
-          members: [toMember],
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-      } else {
-        throw error;
-      }
-    });
+    if (!fromMemberExists) {
+      await updateDoc(fromNetworkRef, {
+        members: arrayUnion(fromMember),
+        updatedAt: serverTimestamp()
+      }).catch(async (error) => {
+        if (error.code === 5) { // NOT_FOUND
+          await setDoc(fromNetworkRef, {
+            members: [fromMember],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          throw error;
+        }
+      });
+    }
+
+    // Check if member already exists before adding
+    const toNetworkDoc = await getDoc(toNetworkRef);
+    const toExistingMembers = toNetworkDoc.exists() ? toNetworkDoc.data().members || [] : [];
+    const toMemberExists = toExistingMembers.some(member => 
+      (member.email && member.email === toMember.email) || 
+      (member.uid && member.uid === toMember.uid)
+    );
+
+    if (!toMemberExists) {
+      await updateDoc(toNetworkRef, {
+        members: arrayUnion(toMember),
+        updatedAt: serverTimestamp()
+      }).catch(async (error) => {
+        if (error.code === 5) { // NOT_FOUND
+          await setDoc(toNetworkRef, {
+            members: [toMember],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          throw error;
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Error updating family network in Firestore:', error);
@@ -557,6 +580,18 @@ app.post('/api/family/request/:id/reject', (req, res) => {
   request.respondedAt = new Date().toISOString();
 
   res.json({ success: true, request });
+});
+
+// API to cleanup duplicate family members
+app.post('/api/family/cleanup-duplicates', async (req, res) => {
+  try {
+    const { cleanupDuplicateFamilyMembers } = require('./cleanup-duplicate-family-members');
+    await cleanupDuplicateFamilyMembers();
+    res.json({ success: true, message: 'Duplicate family members cleaned up successfully' });
+  } catch (error) {
+    console.error('Error cleaning up duplicates:', error);
+    res.status(500).json({ success: false, error: 'Failed to cleanup duplicates' });
+  }
 });
 
 // API to migrate family connections (ensure bidirectional)

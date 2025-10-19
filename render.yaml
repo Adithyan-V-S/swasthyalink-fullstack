@@ -1,0 +1,26 @@
+services:
+  # Frontend (React App)
+  - type: web
+    name: swasthyalink-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://swasthyalink-backend.onrender.com/api/*
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # Backend (Express API)
+  - type: web
+    name: swasthyalink-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
