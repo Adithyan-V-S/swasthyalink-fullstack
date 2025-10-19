@@ -1,7 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
-const db = admin.firestore();
+
+// Firebase Firestore - only initialize if Firebase Admin is available
+let db = null;
+let serverTimestamp = null;
+let Timestamp = null;
+
+if (admin.apps.length > 0) {
+  db = admin.firestore();
+  serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
+  Timestamp = admin.firestore.Timestamp;
+} else {
+  console.log('⚠️ Firebase Firestore not available in presence route - using in-memory storage');
+}
 
 // Presence states
 const PRESENCE_STATES = {
@@ -33,8 +45,8 @@ router.post('/update', async (req, res) => {
     
     await userRef.update({
       'presence.status': status,
-      'presence.lastSeen': admin.firestore.FieldValue.serverTimestamp(),
-      'presence.updatedAt': admin.firestore.FieldValue.serverTimestamp()
+      'presence.lastSeen': serverTimestamp ? serverTimestamp() : new Date(),
+      'presence.updatedAt': serverTimestamp ? serverTimestamp() : new Date()
     });
 
     res.json({
@@ -161,8 +173,8 @@ router.post('/:userId/online', async (req, res) => {
     
     await userRef.update({
       'presence.status': PRESENCE_STATES.ONLINE,
-      'presence.lastSeen': admin.firestore.FieldValue.serverTimestamp(),
-      'presence.updatedAt': admin.firestore.FieldValue.serverTimestamp()
+      'presence.lastSeen': serverTimestamp ? serverTimestamp() : new Date(),
+      'presence.updatedAt': serverTimestamp ? serverTimestamp() : new Date()
     });
 
     res.json({
@@ -187,8 +199,8 @@ router.post('/:userId/away', async (req, res) => {
     
     await userRef.update({
       'presence.status': PRESENCE_STATES.AWAY,
-      'presence.lastSeen': admin.firestore.FieldValue.serverTimestamp(),
-      'presence.updatedAt': admin.firestore.FieldValue.serverTimestamp()
+      'presence.lastSeen': serverTimestamp ? serverTimestamp() : new Date(),
+      'presence.updatedAt': serverTimestamp ? serverTimestamp() : new Date()
     });
 
     res.json({
@@ -213,8 +225,8 @@ router.post('/:userId/offline', async (req, res) => {
     
     await userRef.update({
       'presence.status': PRESENCE_STATES.OFFLINE,
-      'presence.lastSeen': admin.firestore.FieldValue.serverTimestamp(),
-      'presence.updatedAt': admin.firestore.FieldValue.serverTimestamp()
+      'presence.lastSeen': serverTimestamp ? serverTimestamp() : new Date(),
+      'presence.updatedAt': serverTimestamp ? serverTimestamp() : new Date()
     });
 
     res.json({
@@ -241,7 +253,7 @@ router.post('/cleanup', async (req, res) => {
     const usersRef = db.collection('users');
     const query = usersRef
       .where('presence.status', 'in', [PRESENCE_STATES.ONLINE, PRESENCE_STATES.AWAY])
-      .where('presence.updatedAt', '<', admin.firestore.Timestamp.fromDate(thresholdTime));
+      .where('presence.updatedAt', '<', Timestamp ? Timestamp.fromDate(thresholdTime) : thresholdTime);
 
     const snapshot = await query.get();
     const batch = db.batch();
@@ -249,7 +261,7 @@ router.post('/cleanup', async (req, res) => {
     snapshot.forEach(doc => {
       batch.update(doc.ref, {
         'presence.status': PRESENCE_STATES.OFFLINE,
-        'presence.updatedAt': admin.firestore.FieldValue.serverTimestamp()
+        'presence.updatedAt': serverTimestamp ? serverTimestamp() : new Date()
       });
     });
 
