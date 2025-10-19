@@ -18,9 +18,9 @@ const FamilyStatusIndicator = ({ onStatusClick }) => {
     if (currentUser) {
       loadStatus();
       
-      // Auto-refresh every 60 seconds
-      const interval = setInterval(loadStatus, 60000);
-      return () => clearInterval(interval);
+      // DISABLED: Auto-refresh every 60 seconds - causing quota exceeded
+      // const interval = setInterval(loadStatus, 60000);
+      // return () => clearInterval(interval);
     }
   }, [currentUser]);
 

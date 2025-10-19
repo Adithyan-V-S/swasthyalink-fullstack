@@ -20,14 +20,15 @@ const FamilyNetworkManager = ({ onUpdate }) => {
   useEffect(() => {
     loadFamilyNetwork();
     
-    // Refresh the network every 5 seconds to ensure it's up to date
-    const intervalId = setInterval(() => {
-      console.log("Auto-refreshing family network");
-      loadFamilyNetwork();
-    }, 5000);
+    // DISABLED: Refresh the network every 5 seconds to ensure it's up to date
+    // This was causing excessive Firestore reads and quota exceeded
+    // const intervalId = setInterval(() => {
+    //   console.log("Auto-refreshing family network");
+    //   loadFamilyNetwork();
+    // }, 5000);
     
     // Clean up the interval when the component unmounts
-    return () => clearInterval(intervalId);
+    // return () => clearInterval(intervalId);
   }, [currentUser]);
 
   const loadFamilyNetwork = async () => {

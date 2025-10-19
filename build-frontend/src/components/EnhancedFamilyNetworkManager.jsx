@@ -56,12 +56,13 @@ const EnhancedFamilyNetworkManager = ({ onUpdate, onNavigateToChat }) => {
   useEffect(() => {
     loadFamilyNetwork();
     
-    const intervalId = setInterval(() => {
-      console.log("Auto-refreshing family network");
-      loadFamilyNetwork();
-    }, 30000); // Refresh every 30 seconds
+    // DISABLED: Auto-refresh every 30 seconds - causing quota exceeded
+    // const intervalId = setInterval(() => {
+    //   console.log("Auto-refreshing family network");
+    //   loadFamilyNetwork();
+    // }, 30000); // Refresh every 30 seconds
     
-    return () => clearInterval(intervalId);
+    // return () => clearInterval(intervalId);
   }, [currentUser]);
 
   const loadFamilyNetwork = async () => {

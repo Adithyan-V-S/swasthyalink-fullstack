@@ -99,7 +99,8 @@ const FamilyDashboard = () => {
     console.log("FamilyDashboard: userRole:", userRole);
   }, [currentUser, userRole]);
 
-  // Subscribe to notifications (real-time) and conversations for accurate badges
+  // DISABLED: Subscribe to notifications (real-time) and conversations for accurate badges
+  // This was causing excessive Firestore reads and quota exceeded
   useEffect(() => {
     if (!currentUser) {
       setNotifications([]);
@@ -107,22 +108,23 @@ const FamilyDashboard = () => {
       return;
     }
 
-    console.log('🔔 FamilyDashboard: Subscribing (realtime) to notifications & conversations for:', currentUser.uid);
+    console.log('🔔 FamilyDashboard: DISABLED real-time subscriptions to prevent quota exceeded');
 
-    const unsubNotifs = subscribeToNotifications(currentUser.uid, (notifs) => {
-      console.log('📬 FamilyDashboard: Received notifications:', notifs?.length || 0);
-      setNotifications(notifs || []);
-    });
+    // DISABLED: Real-time subscriptions
+    // const unsubNotifs = subscribeToNotifications(currentUser.uid, (notifs) => {
+    //   console.log('📬 FamilyDashboard: Received notifications:', notifs?.length || 0);
+    //   setNotifications(notifs || []);
+    // });
 
-    const unsubConvos = subscribeToConversations(currentUser.uid, (items) => {
-      console.log('💬 FamilyDashboard: Received conversations:', items?.length || 0);
-      setConversations(items || []);
-    });
+    // const unsubConvos = subscribeToConversations(currentUser.uid, (items) => {
+    //   console.log('💬 FamilyDashboard: Received conversations:', items?.length || 0);
+    //   setConversations(items || []);
+    // });
 
-    return () => {
-      if (unsubNotifs) unsubNotifs();
-      if (unsubConvos) unsubConvos();
-    };
+    // return () => {
+    //   if (unsubNotifs) unsubNotifs();
+    //   if (unsubConvos) unsubConvos();
+    // };
   }, [currentUser]);
 
   // Remove the old useEffect since we're now using the auth context
