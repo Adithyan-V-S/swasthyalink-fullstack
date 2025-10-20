@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPresetAdmin, setIsPresetAdmin] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(0);
 
   useEffect(() => {
     // Check for preset admin on mount
@@ -89,6 +90,9 @@ export const AuthProvider = ({ children }) => {
             console.log("AuthContext: UID before setCurrentUser:", updatedUser.uid);
             setCurrentUser(updatedUser);
             console.log("AuthContext: setCurrentUser called, UID should be:", userDocSnap.id);
+            
+            // Force a re-render by updating a timestamp
+            setLastUpdate(Date.now());
           } else {
             console.log("AuthContext: User document not found, using fallback data");
             // Use fallback user data
@@ -234,6 +238,7 @@ export const AuthProvider = ({ children }) => {
     isEmailVerified: isEmailVerified(),
     isPresetAdmin,
     loading,
+    lastUpdate,
     canAccessRoute,
     logout,
     setPresetAdmin: (value) => {
