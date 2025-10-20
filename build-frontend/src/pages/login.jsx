@@ -111,7 +111,9 @@ const Login = () => {
               
               await setDoc(userDocRef, userData);
               console.log("✅ User document created successfully (redirect)");
+              console.log("🚀 Navigating to patient dashboard (redirect)...");
               navigate("/patientdashboard");
+              console.log("✅ Navigation called (redirect)");
             } catch (createError) {
               console.error("❌ Error creating user document (redirect):", createError);
               setError("Failed to create user profile. Please try again.");
@@ -167,13 +169,18 @@ const Login = () => {
         // User exists, navigate based on role
         const userData = userDocSnap.data();
         console.log("Existing user data:", userData);
+        console.log("User role:", userData.role);
         if (userData.role === "doctor") {
+          console.log("🚀 Navigating to doctor dashboard...");
           navigate("/doctordashboard");
         } else if (userData.role === "patient") {
+          console.log("🚀 Navigating to patient dashboard...");
           navigate("/patientdashboard");
         } else if (userData.role === "family") {
+          console.log("🚀 Navigating to family dashboard...");
           navigate("/familydashboard");
         } else {
+          console.log("🚀 Navigating to patient dashboard (default)...");
           navigate("/patientdashboard"); // Default to patient dashboard
         }
       } else {
@@ -193,7 +200,9 @@ const Login = () => {
           
           await setDoc(userDocRef, userData);
           console.log("✅ User document created successfully");
+          console.log("🚀 Navigating to patient dashboard...");
           navigate("/patientdashboard");
+          console.log("✅ Navigation called");
         } catch (createError) {
           console.error("❌ Error creating user document:", createError);
           setError("Failed to create user profile. Please try again.");
