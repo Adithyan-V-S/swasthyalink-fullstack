@@ -77,8 +77,10 @@ export const AuthProvider = ({ children }) => {
             const updatedUser = {
               ...user,
               ...userData,
-              uid: userDocSnap.id // Use Firestore document ID as the UID
+              uid: userDocSnap.id // Use Firestore document ID as the UID (this should override user.uid)
             };
+            // Force override the uid property to ensure it's correct
+            updatedUser.uid = userDocSnap.id;
             console.log("AuthContext: Updating currentUser with Firestore data:", updatedUser);
             setCurrentUser(updatedUser);
           } else {
