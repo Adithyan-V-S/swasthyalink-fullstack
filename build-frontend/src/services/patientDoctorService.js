@@ -285,11 +285,8 @@ export const acceptRequest = async (requestId, otp) => {
     const isTestUser = localStorage.getItem('testUser') !== null;
     
     if (isTestUser) {
-      console.log('🧪 Using test user - simulating accept request');
-      return {
-        success: true,
-        message: 'Connection request accepted successfully (test mode)'
-      };
+      console.log('🧪 Using test user - sending real accept request to backend');
+      // Don't simulate, send real request even for test users
     }
     
     // In production, use a test token if Firebase auth fails
