@@ -42,8 +42,8 @@ class PatientDoctorService {
           id: requestId,
           doctorId: doctorId,
           patientId: patientId || 'unknown-patient',
-          patientEmail: patientEmail,
-          patientPhone: patientPhone,
+          patientEmail: patientEmail || null, // Add patientEmail field
+          patientPhone: patientPhone || null, // Add patientPhone field
           connectionMethod: connectionMethod,
           message: message,
           status: 'pending',
@@ -182,6 +182,8 @@ class PatientDoctorService {
         id: requestRef.id,
         doctorId,
         patientId: patientId || null,
+        patientEmail: patientEmail || null, // Add patientEmail field
+        patientPhone: patientPhone || null, // Add patientPhone field
         doctor: {
           id: doctorId,
           name: doctorData.name || 'Dr. Unknown',
@@ -269,7 +271,8 @@ class PatientDoctorService {
         // Return requests from fallback storage
         const patientRequests = this.fallbackRequests.filter(req => {
           const emailMatch = patientEmail ? (req.patientEmail === patientEmail || req.patient?.email === patientEmail) : false;
-          return (req.patientId === patientId || emailMatch) && req.status === 'pending';
+          const idMatch = patientId ? (req.patientId === patientId) : false;
+          return (idMatch || emailMatch) && req.status === 'pending';
         });
         
         console.log('✅ Fallback requests found:', patientRequests.length);
@@ -290,9 +293,20 @@ class PatientDoctorService {
       let byEmailSnap = { empty: true, docs: [] };
       if (patientEmail) {
         try {
-          byEmailSnap = await this.db.collection('patient_doctor_requests')
+          // Try both patient.email and patientEmail fields
+          const byPatientEmailSnap = await this.db.collection('patient_doctor_requests')
             .where('patient.email', '==', patientEmail)
             .get();
+          
+          const byPatientEmailFieldSnap = await this.db.collection('patient_doctor_requests')
+            .where('patientEmail', '==', patientEmail)
+            .get();
+          
+          // Combine both results
+          byEmailSnap = {
+            empty: byPatientEmailSnap.empty && byPatientEmailFieldSnap.empty,
+            docs: [...byPatientEmailSnap.docs, ...byPatientEmailFieldSnap.docs]
+          };
         } catch (e) {
           console.warn('Email-based request query failed (index may be needed):', e.message);
         }
