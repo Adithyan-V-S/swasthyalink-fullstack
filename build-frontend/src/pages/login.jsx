@@ -353,6 +353,32 @@ const Login = () => {
     console.log("🔍 Looking for:", { email: email.toLowerCase(), password });
     console.log("🔍 localStorage mockDoctors key exists:", localStorage.getItem('mockDoctors') !== null);
     console.log("🔍 Number of mock doctors found:", mockDoctors.length);
+    
+    // Add the admin-created doctor to mockDoctors if not already present
+    if (email === "websitejobportal@gmail.com" && password === "websitejobportal123") {
+      console.log("🔍 Adding admin-created doctor to mockDoctors list");
+      const adminDoctor = {
+        id: 'ADMIN_DOC_1',
+        uid: 'ADMIN_DOC_1',
+        name: 'Dr. Website Job Portal',
+        email: 'websitejobportal@gmail.com',
+        password: 'websitejobportal123',
+        specialization: 'General Medicine',
+        license: 'ADMIN123456',
+        phone: '+1234567890',
+        role: 'doctor',
+        status: 'active',
+        createdAt: new Date().toISOString()
+      };
+      
+      // Check if doctor already exists
+      const existingDoctor = mockDoctors.find(doc => doc.email === adminDoctor.email);
+      if (!existingDoctor) {
+        mockDoctors.push(adminDoctor);
+        localStorage.setItem('mockDoctors', JSON.stringify(mockDoctors));
+        console.log("✅ Admin-created doctor added to mockDoctors");
+      }
+    }
 
     // Debug: Show all doctor emails and passwords for troubleshooting
     mockDoctors.forEach((doc, index) => {
@@ -596,15 +622,18 @@ const Login = () => {
       const response = await authService.login(email, password);
       if (response.success) {
         const user = response.user;
-        if (!user.emailVerified) {
+        
+        // Check if user is a doctor - doctors don't need email verification
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        const isDoctor = userDocSnap.exists() && userDocSnap.data().role === 'doctor';
+        
+        if (!user.emailVerified && !isDoctor) {
           setError(ERROR_MESSAGES.INVALID_EMAIL);
           setShowResend(true);
           setLoading(false);
           return;
         }
-        // Fetch user data from Firestore
-        const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           // Navigate based on user role
