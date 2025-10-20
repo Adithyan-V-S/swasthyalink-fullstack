@@ -12,17 +12,26 @@ const PORT = process.env.PORT || 3001;
 
 // Initialize Firebase Admin
 try {
-  // Use environment variables for production, fallback to credentials file for local dev
-  if (process.env.NODE_ENV === 'production') {
-    // In production, skip Firebase Admin initialization to avoid credentials issues
-    console.log('⚠️ Skipping Firebase Admin initialization in production - using fallback auth');
+  // Prefer env-based credentials in production
+  const hasEnvCreds = !!(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY);
+  if (hasEnvCreds) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      }),
+      projectId: process.env.FIREBASE_PROJECT_ID,
+    });
+    console.log('✅ Firebase Admin initialized (env-based)');
   } else {
+    // Fallback to local credentials in development
     const serviceAccount = require('./credentialss.json');
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      projectId: 'swasthyakink'
+      projectId: serviceAccount.project_id || 'swasthyakink'
     });
-    console.log('✅ Firebase Admin initialized successfully for project: swasthyakink (development mode)');
+    console.log('✅ Firebase Admin initialized (local credentials)');
   }
 } catch (error) {
   console.error('❌ Failed to initialize Firebase Admin:', error.message);
