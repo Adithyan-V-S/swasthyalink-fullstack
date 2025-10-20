@@ -128,16 +128,36 @@ const DoctorDashboard = () => {
       const isTestUser = localStorage.getItem('testUser') !== null;
       console.log('Doctor Dashboard: Is test user:', isTestUser);
 
-      // TODO: Fetch doctor profile from backend
-      // For now, use simulated data
-      setProfile({
-        name: "Dr. John Smith",
-        specialization: "Cardiology",
-        license: "LIC123456",
-        experience: "10 years",
-        description: "Experienced cardiologist",
-        phone: "+1234567890",
-      });
+      // Use real user data from currentUser or testUser
+      let doctorData = {};
+      
+      if (isTestUser) {
+        // Get data from testUser localStorage
+        const testUserData = JSON.parse(localStorage.getItem('testUser') || '{}');
+        console.log('Doctor Dashboard: Test user data:', testUserData);
+        
+        doctorData = {
+          name: testUserData.displayName || testUserData.name || "Dr. Unknown",
+          specialization: testUserData.specialization || "General Medicine",
+          license: testUserData.license || "UNKNOWN123",
+          experience: testUserData.experience || "5 years",
+          description: testUserData.description || "Healthcare professional",
+          phone: testUserData.phone || "+1234567890",
+        };
+      } else {
+        // Use currentUser data
+        doctorData = {
+          name: currentUser?.displayName || currentUser?.name || "Dr. Unknown",
+          specialization: currentUser?.specialization || "General Medicine",
+          license: currentUser?.license || "UNKNOWN123",
+          experience: currentUser?.experience || "5 years",
+          description: currentUser?.description || "Healthcare professional",
+          phone: currentUser?.phone || "+1234567890",
+        };
+      }
+      
+      console.log('Doctor Dashboard: Setting profile with data:', doctorData);
+      setProfile(doctorData);
 
       // Use fallback data for now
       setPatients([
