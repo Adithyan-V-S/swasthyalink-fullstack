@@ -73,14 +73,18 @@ export const AuthProvider = ({ children }) => {
             console.log("AuthContext: User data from Firestore:", userData);
             setUserRole(userData.role || 'patient');
             
-            // Update currentUser with Firestore data to ensure consistent UID
+            // Create a completely new user object with Firestore data to ensure consistent UID
             const updatedUser = {
-              ...user,
+              // Copy essential Firebase Auth properties
+              providerId: user.providerId,
+              proactiveRefresh: user.proactiveRefresh,
+              reloadUserInfo: user.reloadUserInfo,
+              reloadListener: user.reloadListener,
+              // Copy Firestore user data first
               ...userData,
-              uid: userDocSnap.id // Use Firestore document ID as the UID (this should override user.uid)
+              // Override with Firestore document ID as the UID (this must come last)
+              uid: userDocSnap.id
             };
-            // Force override the uid property to ensure it's correct
-            updatedUser.uid = userDocSnap.id;
             console.log("AuthContext: Updating currentUser with Firestore data:", updatedUser);
             console.log("AuthContext: UID before setCurrentUser:", updatedUser.uid);
             setCurrentUser(updatedUser);
