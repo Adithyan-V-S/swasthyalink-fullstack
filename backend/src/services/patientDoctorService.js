@@ -19,6 +19,7 @@ class PatientDoctorService {
     // In-memory storage for fallback mode
     this.fallbackRequests = [];
     this.fallbackRelationships = [];
+    this.fallbackNotifications = [];
   }
 
   /**
@@ -415,6 +416,30 @@ class PatientDoctorService {
         
         this.fallbackRelationships.push(relationshipData);
         
+        // Create fallback notification for doctor
+        const notificationId = 'fallback-notification-' + Date.now();
+        const fallbackNotification = {
+          id: notificationId,
+          recipientId: requestData.doctorId,
+          senderId: patientId,
+          type: 'connection_accepted',
+          title: 'Connection Established Successfully!',
+          message: `${requestData.patient.name || 'Patient'} has accepted your connection request`,
+          data: {
+            relationshipId: relationshipId,
+            patientName: requestData.patient.name || 'Patient',
+            patientEmail: requestData.patient.email || 'unknown@example.com'
+          },
+          priority: 'high',
+          read: false,
+          deleted: false,
+          timestamp: new Date()
+        };
+        
+        // Store in fallback notifications
+        this.fallbackNotifications.push(fallbackNotification);
+        console.log('✅ Fallback notification created for doctor:', fallbackNotification);
+        
         console.log('✅ Fallback request accepted and relationship created');
         
         return {
@@ -739,25 +764,9 @@ class PatientDoctorService {
         console.log('⚠️ Firebase not available, using fallback notifications');
         
         // Return notifications from fallback storage
-        const notifications = this.fallbackRequests
-          .filter(req => req.doctorId === doctorId && req.status === 'accepted')
-          .map(req => ({
-            id: 'notification-' + req.id,
-            recipientId: doctorId,
-            senderId: req.patientId,
-            type: 'connection_accepted',
-            title: 'Connection Established Successfully!',
-            message: `${req.patient.name || 'Patient'} has accepted your connection request`,
-            data: {
-              relationshipId: 'fallback-relationship-' + req.id,
-              patientName: req.patient.name || 'Patient',
-              patientEmail: req.patient.email || 'unknown@example.com'
-            },
-            priority: 'high',
-            read: false,
-            deleted: false,
-            timestamp: req.acceptedAt || new Date()
-          }));
+        const notifications = this.fallbackNotifications.filter(notif => 
+          notif.recipientId === doctorId && !notif.deleted
+        );
         
         console.log('✅ Fallback notifications found:', notifications.length);
         return {
