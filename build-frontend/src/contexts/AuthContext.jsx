@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPresetAdmin, setIsPresetAdmin] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(0);
 
   useEffect(() => {
     // Check for preset admin on mount
@@ -74,25 +73,26 @@ export const AuthProvider = ({ children }) => {
             console.log("AuthContext: User data from Firestore:", userData);
             setUserRole(userData.role || 'patient');
             
-            // Create a completely new user object with Firestore data to ensure consistent UID
+            // Update currentUser with Firestore data to ensure consistent UID
             const updatedUser = {
-              // Copy essential Firebase Auth properties
-              providerId: user.providerId,
-              proactiveRefresh: user.proactiveRefresh,
-              reloadUserInfo: user.reloadUserInfo,
-              reloadListener: user.reloadListener,
-              // Copy Firestore user data first
+              ...user,
               ...userData,
-              // Override with Firestore document ID as the UID (this must come last)
-              uid: userDocSnap.id
+              uid: userDocSnap.id // Use Firestore document ID as the UID (this should override user.uid)
             };
+            // Force override the uid property to ensure it's correct
+            updatedUser.uid = userDocSnap.id;
+            
+            // Ensure the user object has all necessary Firebase methods
+            if (user.getIdToken) {
+              updatedUser.getIdToken = user.getIdToken.bind(user);
+            }
+            if (user.reload) {
+              updatedUser.reload = user.reload.bind(user);
+            }
             console.log("AuthContext: Updating currentUser with Firestore data:", updatedUser);
             console.log("AuthContext: UID before setCurrentUser:", updatedUser.uid);
             setCurrentUser(updatedUser);
             console.log("AuthContext: setCurrentUser called, UID should be:", userDocSnap.id);
-            
-            // Force a re-render by updating a timestamp
-            setLastUpdate(Date.now());
           } else {
             console.log("AuthContext: User document not found, using fallback data");
             // Use fallback user data
@@ -238,7 +238,6 @@ export const AuthProvider = ({ children }) => {
     isEmailVerified: isEmailVerified(),
     isPresetAdmin,
     loading,
-    lastUpdate,
     canAccessRoute,
     logout,
     setPresetAdmin: (value) => {
