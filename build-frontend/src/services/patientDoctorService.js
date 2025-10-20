@@ -213,7 +213,7 @@ export const resendRequest = async (requestId) => {
  * @param {string} uid - Patient's UID (optional, uses current user)
  * @returns {Promise<Array>} Array of pending requests
  */
-export const getPendingRequests = async (uid) => {
+export const getPendingRequests = async (uid, email) => {
   try {
     // Check if this is a test user
     const isTestUser = localStorage.getItem('testUser') !== null;
@@ -252,7 +252,12 @@ export const getPendingRequests = async (uid) => {
       token = 'test-patient-token'; // Fallback for production
     }
     
-    const response = await fetch(`${API_BASE}/requests`, {
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (uid) params.append('patientId', uid);
+    if (email) params.append('patientEmail', email);
+    
+    const response = await fetch(`${API_BASE}/requests?${params.toString()}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
