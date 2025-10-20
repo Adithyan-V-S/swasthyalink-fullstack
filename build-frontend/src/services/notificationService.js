@@ -8,10 +8,10 @@ import {
   updateDoc, 
   doc, 
   serverTimestamp,
-  getAuth
   writeBatch,
   getDocs
 } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { db } from '../firebaseConfig';
 
 // Notification types
