@@ -208,45 +208,13 @@ const PatientDashboard = () => {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // EMERGENCY MODE: Use mock notifications to prevent Firestore quota usage
+  // Notifications: no mocks in production; keep empty list unless implemented
   useEffect(() => {
     if (!currentUser) {
       setNotifications([]);
       return;
     }
-
-    console.log('🚨 EMERGENCY MODE: Using mock notifications to prevent Firestore quota usage');
-    
-    // Use mock notifications instead of Firestore
-    const mockNotifications = [
-      {
-        id: 'mock-notification-1',
-        type: 'doctor_connection_request',
-        title: 'New Doctor Request',
-        message: 'Dr. Sarah Johnson wants to connect with you',
-        timestamp: new Date().toISOString(),
-        read: false
-      },
-      {
-        id: 'mock-notification-2',
-        type: 'prescription_received',
-        title: 'New Prescription',
-        message: 'You have received a new prescription from Dr. Michael Smith',
-        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        read: false
-      },
-      {
-        id: 'mock-notification-3',
-        type: 'appointment_reminder',
-        title: 'Appointment Reminder',
-        message: 'You have an appointment tomorrow at 2:00 PM',
-        timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        read: true
-      }
-    ];
-    
-    setNotifications(mockNotifications);
-    console.log('📬 Mock notifications loaded:', mockNotifications);
+    setNotifications([]);
   }, [currentUser]);
 
   // Load family members from Firestore
@@ -287,41 +255,7 @@ const PatientDashboard = () => {
         return;
       }
 
-      // Only use mock data in explicit test mode
-      const isTestUserMode = localStorage.getItem('testUser') !== null;
-      if (isTestUserMode) {
-        console.log('🧪 Test mode: showing demo doctor requests');
-        const mockRequests = [
-          {
-            id: 'mock-request-1',
-            doctor: {
-              name: 'Dr. John Smith',
-              specialization: 'Cardiology',
-              email: 'dr.john@example.com'
-            },
-            connectionMethod: 'email',
-            message: 'Dr. John Smith wants to connect with you to provide medical care.',
-            createdAt: new Date().toISOString(),
-            status: 'pending'
-          },
-          {
-            id: 'mock-request-2',
-            doctor: {
-              name: 'Dr. Sarah Johnson',
-              specialization: 'Dermatology',
-              email: 'dr.sarah@example.com'
-            },
-            connectionMethod: 'email',
-            message: 'Dr. Sarah Johnson wants to connect with you for skin care consultation.',
-            createdAt: new Date().toISOString(),
-            status: 'pending'
-          }
-        ];
-        setPendingRequests(mockRequests);
-        setConnectedDoctors([]);
-        setRealOTP('123456');
-        return;
-      }
+      // Always fetch real data in production
 
       try {
         console.log('PatientDashboard: Fetching requests for user:', currentUser.uid);
@@ -367,124 +301,14 @@ const PatientDashboard = () => {
     fetchRequestsAndDoctors();
   }, [currentUser]);
 
-  // EMERGENCY MODE: Use comprehensive mock prescriptions in chat message format
+  // Prescriptions: no mocks; leave empty until real endpoint is wired
   useEffect(() => {
     if (!currentUser?.uid) {
       setPrescriptions([]);
       return;
     }
-    
-    console.log('🚨 EMERGENCY MODE: Loading mock prescriptions in chat message format');
-    
-    // Comprehensive mock prescriptions data in chat message format
-    const mockPrescriptions = [
-      {
-        id: 'prescription-1',
-        doctorName: "Dr. Sarah Johnson",
-        doctorSpecialization: "Cardiologist",
-        doctorAvatar: "https://ui-avatars.com/api/?name=Dr+Sarah+Johnson&background=4f46e5&color=fff&size=48",
-        medication: "Amlodipine 5mg",
-        dosage: "1 tablet daily",
-        frequency: "Once daily",
-        instructions: "Take with water in the morning",
-        notes: "Monitor blood pressure regularly. Next follow-up in 2 weeks.",
-        prescribedDate: "2024-01-15",
-        prescribedTime: "10:30 AM",
-        createdAt: new Date('2024-01-15T10:30:00'),
-        status: "Active",
-        duration: "30 days",
-        refills: 2
-      },
-      {
-        id: 'prescription-2',
-        doctorName: "Dr. Michael Chen",
-        doctorSpecialization: "Endocrinologist",
-        doctorAvatar: "https://ui-avatars.com/api/?name=Dr+Michael+Chen&background=10b981&color=fff&size=48",
-        medication: "Metformin 500mg",
-        dosage: "2 tablets daily",
-        frequency: "Twice daily",
-        instructions: "Take with meals to reduce stomach upset",
-        notes: "Monitor blood sugar levels. Check HbA1c in 3 months.",
-        prescribedDate: "2024-01-12",
-        prescribedTime: "2:15 PM",
-        createdAt: new Date('2024-01-12T14:15:00'),
-        status: "Active",
-        duration: "90 days",
-        refills: 1
-      },
-      {
-        id: 'prescription-3',
-        doctorName: "Dr. Emily Rodriguez",
-        doctorSpecialization: "Dermatologist",
-        doctorAvatar: "https://ui-avatars.com/api/?name=Dr+Emily+Rodriguez&background=f59e0b&color=fff&size=48",
-        medication: "Clobetasol Cream 0.05%",
-        dosage: "Apply thin layer",
-        frequency: "Twice daily",
-        instructions: "Apply to affected areas only. Avoid contact with eyes.",
-        notes: "Use for 2 weeks only. If no improvement, contact clinic.",
-        prescribedDate: "2024-01-10",
-        prescribedTime: "11:45 AM",
-        createdAt: new Date('2024-01-10T11:45:00'),
-        status: "Completed",
-        duration: "14 days",
-        refills: 0
-      },
-      {
-        id: 'prescription-4',
-        doctorName: "Dr. James Wilson",
-        doctorSpecialization: "Orthopedist",
-        doctorAvatar: "https://ui-avatars.com/api/?name=Dr+James+Wilson&background=ef4444&color=fff&size=48",
-        medication: "Ibuprofen 400mg",
-        dosage: "1 tablet",
-        frequency: "Every 6-8 hours as needed",
-        instructions: "Take with food to prevent stomach irritation",
-        notes: "For pain management. Discontinue if side effects occur.",
-        prescribedDate: "2024-01-08",
-        prescribedTime: "3:20 PM",
-        createdAt: new Date('2024-01-08T15:20:00'),
-        status: "Active",
-        duration: "7 days",
-        refills: 0
-      },
-      {
-        id: 'prescription-5',
-        doctorName: "Dr. Lisa Park",
-        doctorSpecialization: "Psychiatrist",
-        doctorAvatar: "https://ui-avatars.com/api/?name=Dr+Lisa+Park&background=8b5cf6&color=fff&size=48",
-        medication: "Sertraline 50mg",
-        dosage: "1 tablet daily",
-        frequency: "Once daily",
-        instructions: "Take at the same time each day, preferably in the morning",
-        notes: "May take 2-4 weeks to see full effect. Regular follow-ups required.",
-        prescribedDate: "2024-01-05",
-        prescribedTime: "9:00 AM",
-        createdAt: new Date('2024-01-05T09:00:00'),
-        status: "Active",
-        duration: "60 days",
-        refills: 3
-      },
-      {
-        id: 'prescription-6',
-        doctorName: "Dr. Robert Kim",
-        doctorSpecialization: "Gastroenterologist",
-        doctorAvatar: "https://ui-avatars.com/api/?name=Dr+Robert+Kim&background=06b6d4&color=fff&size=48",
-        medication: "Omeprazole 20mg",
-        dosage: "1 capsule daily",
-        frequency: "Once daily",
-        instructions: "Take 30 minutes before first meal of the day",
-        notes: "For acid reflux management. Follow up in 4 weeks.",
-        prescribedDate: "2024-01-03",
-        prescribedTime: "1:30 PM",
-        createdAt: new Date('2024-01-03T13:30:00'),
-        status: "Active",
-        duration: "30 days",
-        refills: 1
-      }
-    ];
-    
-    setPrescriptions(mockPrescriptions);
+    setPrescriptions([]);
     setPrescriptionsLoading(false);
-    console.log('💊 Mock prescriptions loaded:', mockPrescriptions);
   }, [currentUser]);
 
   const qrValue = uid ? `https://yourapp.com/patient/${uid}` : "";
