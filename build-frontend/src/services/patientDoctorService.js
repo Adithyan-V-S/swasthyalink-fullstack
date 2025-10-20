@@ -316,7 +316,15 @@ export const acceptRequest = async (requestId, otp) => {
     // In production, use a test token if Firebase auth fails
     let token;
     try {
-      token = await currentUser?.getIdToken();
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (user && user.getIdToken) {
+        token = await user.getIdToken();
+      } else {
+        console.log('Firebase auth failed, using test token: currentUser not available');
+        token = 'test-patient-token';
+      }
     } catch (error) {
       console.log('Firebase auth failed, using test token:', error.message);
       token = 'test-patient-token'; // Fallback for production

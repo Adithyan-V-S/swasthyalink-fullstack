@@ -903,6 +903,7 @@ const PatientDashboard = () => {
       </section>
     </div>
   );
+  };
 
   const renderDoctorsSection = () => (
     <div className="w-full max-w-6xl space-y-8">
