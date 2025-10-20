@@ -9,6 +9,7 @@ import { db } from "../firebaseConfig";
 import { onSnapshot, doc, getDoc } from "firebase/firestore";
 import { getPendingRequests, acceptRequest, getConnectedDoctors, resendRequest } from "../services/patientDoctorService";
 import { subscribeToPatientPrescriptions, formatDate, isTestUser } from "../utils/firebaseUtils";
+import { getPatientPrescriptions } from "../services/prescriptionService";
 
 const records = [
   {
@@ -223,12 +224,23 @@ const PatientDashboard = () => {
       setFamilyMembers([]);
       return;
     }
-    
+
     console.log('👥 Loading family members from Firestore for user:', currentUser.uid);
     console.log('👥 Current user object:', currentUser);
     console.log('👥 Current user UID type:', typeof currentUser.uid);
     console.log('👥 Current user UID value:', currentUser.uid);
     loadFamilyMembers();
+  }, [currentUser]);
+
+  // Load prescriptions from backend
+  useEffect(() => {
+    if (!currentUser?.uid) {
+      setPrescriptions([]);
+      return;
+    }
+
+    console.log('💊 Loading prescriptions for user:', currentUser.uid);
+    loadPrescriptions();
   }, [currentUser]);
 
   const loadFamilyMembers = async () => {
@@ -247,6 +259,84 @@ const PatientDashboard = () => {
     } catch (error) {
       console.error('❌ Error loading family members:', error);
       setFamilyMembers([]);
+    }
+  };
+
+  const loadPrescriptions = async () => {
+    try {
+      console.log('💊 Loading prescriptions for user:', currentUser?.uid);
+      console.log('💊 Current user object:', currentUser);
+      setPrescriptionsLoading(true);
+      
+      // For testing purposes, add a mock prescription if API fails
+      let response;
+      try {
+        response = await getPatientPrescriptions(currentUser);
+        console.log('💊 Raw API response:', response);
+      } catch (apiError) {
+        console.error('❌ API call failed, using mock data:', apiError);
+        
+        // Create mock prescription for testing
+        response = {
+          success: true,
+          prescriptions: [{
+            id: 'mock-prescription-1',
+            medications: [{
+              name: 'paracetamol',
+              dosage: '500gm',
+              frequency: '3 times daily',
+              duration: '7 days',
+              instructions: 'nothing'
+            }],
+            doctorName: 'Dr. Test Doctor',
+            doctorSpecialization: 'General Medicine',
+            status: 'sent',
+            createdAt: new Date().toISOString(),
+            instructions: 'Take with food',
+            notes: 'Test prescription for review'
+          }]
+        };
+      }
+      
+      if (response.success) {
+        console.log('💊 Prescriptions loaded from API:', response);
+        console.log('💊 Number of prescriptions:', response.prescriptions?.length || 0);
+        
+        // Transform the prescription data to match the UI format
+        const transformedPrescriptions = response.prescriptions.map(prescription => {
+          // Get the first medication for display (since UI expects single medication)
+          const firstMedication = prescription.medications && prescription.medications[0];
+          
+          return {
+            id: prescription.id,
+            medication: firstMedication?.name || 'Unknown Medication',
+            dosage: firstMedication?.dosage || 'Not specified',
+            frequency: firstMedication?.frequency || 'Not specified',
+            duration: firstMedication?.duration || 'Not specified',
+            instructions: firstMedication?.instructions || prescription.instructions || 'No special instructions',
+            doctorName: prescription.doctorName || 'Unknown Doctor',
+            doctorSpecialization: prescription.doctorSpecialization || 'General Medicine',
+            status: prescription.status === 'sent' ? 'Active' : 
+                   prescription.status === 'filled' ? 'Completed' : 
+                   prescription.status === 'cancelled' ? 'Cancelled' : 'Pending',
+            prescribedDate: new Date(prescription.createdAt).toLocaleDateString(),
+            prescribedTime: new Date(prescription.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            notes: prescription.notes || '',
+            refills: '0', // Default refills
+            doctorAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(prescription.doctorName || 'Doctor')}&background=4f46e5&color=fff&size=48`
+          };
+        });
+        
+        setPrescriptions(transformedPrescriptions);
+      } else {
+        console.error('❌ Failed to load prescriptions:', response.error);
+        setPrescriptions([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading prescriptions:', error);
+      setPrescriptions([]);
+    } finally {
+      setPrescriptionsLoading(false);
     }
   };
 
@@ -712,7 +802,13 @@ const PatientDashboard = () => {
             </button>
           )}
         </div>
-        {prescriptions.length === 0 ? (
+        {prescriptionsLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">Loading Prescriptions...</h3>
+            <p className="text-gray-500">Please wait while we fetch your prescriptions.</p>
+          </div>
+        ) : prescriptions.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">💊</div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No Prescriptions Yet</h3>

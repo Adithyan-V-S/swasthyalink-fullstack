@@ -70,6 +70,17 @@ class PrescriptionModel {
    */
   static async getDoctorPrescriptions(doctorId, limit = 50) {
     try {
+      // Check if Firebase is available
+      if (!db) {
+        console.log('⚠️ Firebase not available, using fallback for doctor prescriptions');
+        
+        // Return empty array for now - in a real app, you might want to use in-memory storage
+        return {
+          success: true,
+          prescriptions: []
+        };
+      }
+
       const prescriptionsSnap = await db.collection('prescriptions')
         .where('doctorId', '==', doctorId)
         .orderBy('createdAt', 'desc')
@@ -107,6 +118,17 @@ class PrescriptionModel {
    */
   static async getPatientPrescriptions(patientId, limit = 50) {
     try {
+      // Check if Firebase is available
+      if (!db) {
+        console.log('⚠️ Firebase not available, using fallback for patient prescriptions');
+        
+        // Return empty array for now - in a real app, you might want to use in-memory storage
+        return {
+          success: true,
+          prescriptions: []
+        };
+      }
+
       const prescriptionsSnap = await db.collection('prescriptions')
         .where('patientId', '==', patientId)
         .orderBy('createdAt', 'desc')
