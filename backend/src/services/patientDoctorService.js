@@ -433,8 +433,18 @@ class PatientDoctorService {
 
       const requestData = requestDoc.data();
 
-      // Verify request belongs to patient
-      if (requestData.patientId !== patientId) {
+      // Verify request belongs to patient (check by ID or email)
+      const patientIdMatch = requestData.patientId === patientId;
+      const patientEmailMatch = requestData.patient?.email && requestData.patient.email === patientId; // patientId might be email
+      const patientEmailFieldMatch = requestData.patientEmail && requestData.patientEmail === patientId; // patientId might be email
+      
+      if (!patientIdMatch && !patientEmailMatch && !patientEmailFieldMatch) {
+        console.log('❌ Request ownership check failed:', {
+          requestPatientId: requestData.patientId,
+          requestPatientEmail: requestData.patient?.email,
+          requestPatientEmailField: requestData.patientEmail,
+          providedPatientId: patientId
+        });
         throw new Error('Unauthorized');
       }
 
