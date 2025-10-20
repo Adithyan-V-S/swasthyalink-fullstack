@@ -303,15 +303,15 @@ const DoctorDashboard = () => {
 
   const handleEmailConnection = async (email) => {
     try {
-      // Create connection request via service with email method
+      // Create connection request via service with direct method (no OTP)
       const result = await createConnectionRequest({
         patientEmail: email,
-        connectionMethod: 'email',
-        message: `Dr. ${profile.name} wants to connect with you via email invitation.`
+        connectionMethod: 'direct', // Use direct method instead of email/otp
+        message: `Dr. ${profile.name} wants to connect with you.`
       });
 
       if (result.success) {
-        setNotification("Connection invitation sent to email! Patient will receive an OTP to verify.");
+        setNotification("Connection invitation sent! Patient can accept the request directly.");
       } else {
         throw new Error(result.error);
       }
@@ -325,11 +325,11 @@ const DoctorDashboard = () => {
           try {
             const retryResult = await createConnectionRequest({
               patientEmail: email,
-              connectionMethod: 'email',
-              message: `Dr. ${profile.name} wants to connect with you via email invitation.`
+              connectionMethod: 'direct',
+              message: `Dr. ${profile.name} wants to connect with you.`
             });
             if (retryResult.success) {
-              setNotification("Connection invitation sent to email! Patient will receive an OTP to verify.");
+              setNotification("Connection invitation sent! Patient can accept the request directly.");
               return;
             }
           } catch (retryError) {
@@ -431,7 +431,7 @@ const DoctorDashboard = () => {
     try {
       const result = await createConnectionRequest({
         patientId: patient.id,
-        connectionMethod: 'email',
+        connectionMethod: 'direct',
         message: `Dr. ${profile.name} would like to connect with you to provide medical care.`
       });
 

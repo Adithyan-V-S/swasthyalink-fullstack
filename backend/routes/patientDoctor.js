@@ -22,10 +22,10 @@ router.post('/connection-request', requireDoctor, async (req, res) => {
       });
     }
 
-    if (!connectionMethod || !['qr', 'email', 'otp'].includes(connectionMethod)) {
+    if (!connectionMethod || !['qr', 'email', 'otp', 'direct'].includes(connectionMethod)) {
       return res.status(400).json({
         success: false,
-        error: 'Valid connection method is required (qr, email, or otp)'
+        error: 'Valid connection method is required (qr, email, otp, or direct)'
       });
     }
 

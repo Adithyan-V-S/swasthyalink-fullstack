@@ -23,7 +23,7 @@ class PatientDoctorService {
    * @param {string} patientId - Patient's UID (optional if using email/phone)
    * @param {string} patientEmail - Patient's email
    * @param {string} patientPhone - Patient's phone
-   * @param {string} connectionMethod - 'qr', 'email', or 'otp'
+   * @param {string} connectionMethod - 'qr', 'email', 'otp', or 'direct'
    * @param {string} message - Optional message from doctor
    */
   async sendConnectionRequest(doctorId, patientId, patientEmail, patientPhone, connectionMethod, message = '') {
@@ -104,9 +104,9 @@ class PatientDoctorService {
         console.log(`Cancelled ${pendingRequest.size} old pending requests`);
       }
 
-      // Generate OTP for verification
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      // Generate OTP for verification (skip for direct method)
+      const otp = connectionMethod === 'direct' ? null : Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpiry = connectionMethod === 'direct' ? null : new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
       // Create request document
       const requestRef = this.db.collection('patient_doctor_requests').doc();

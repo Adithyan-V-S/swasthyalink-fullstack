@@ -94,17 +94,12 @@ export const searchPatients = async (query) => {
  */
 export const createConnectionRequest = async (requestData) => {
   try {
-    // Check if this is a test user
+    // Check if this is a test user - but still send real requests
     const isTestUser = localStorage.getItem('testUser') !== null;
     
     if (isTestUser) {
-      console.log('🧪 Using test user - simulating connection request');
-      // Simulate successful connection request for test users
-      return {
-        success: true,
-        message: 'Connection request sent successfully (test mode)',
-        requestId: 'test-request-' + Date.now()
-      };
+      console.log('🧪 Test user detected - sending real connection request');
+      // Don't simulate, send real request even for test users
     }
     
     const auth = getAuth();
