@@ -109,7 +109,17 @@ class PatientDoctorService {
       }
 
       if (!patientData) {
-        throw new Error('Patient not found');
+        // If email was provided but no Firestore user exists, allow email-only flow
+        if (patientEmail) {
+          patientData = {
+            email: patientEmail,
+            name: (patientEmail.split('@')[0] || 'Unknown Patient')
+          };
+          patientId = null; // email-only request
+          console.log('Proceeding with email-only patient request for:', patientEmail);
+        } else {
+          throw new Error('Patient not found');
+        }
       }
 
       // Get doctor data
@@ -120,23 +130,34 @@ class PatientDoctorService {
       const doctorData = doctorDoc.data();
 
       // Check if connection already exists
-      const existingConnection = await this.db.collection('patient_doctor_relationships')
-        .where('patientId', '==', patientId)
-        .where('doctorId', '==', doctorId)
-        .where('status', '==', 'active')
-        .limit(1)
-        .get();
+      if (patientId) {
+        const existingConnection = await this.db.collection('patient_doctor_relationships')
+          .where('patientId', '==', patientId)
+          .where('doctorId', '==', doctorId)
+          .where('status', '==', 'active')
+          .limit(1)
+          .get();
 
-      if (!existingConnection.empty) {
-        throw new Error('Connection already exists');
+        if (!existingConnection.empty) {
+          throw new Error('Connection already exists');
+        }
       }
 
       // Check for pending request and clean up old ones
-      const pendingRequest = await this.db.collection('patient_doctor_requests')
-        .where('patientId', '==', patientId)
-        .where('doctorId', '==', doctorId)
-        .where('status', '==', 'pending')
-        .get();
+      let pendingRequest;
+      if (patientId) {
+        pendingRequest = await this.db.collection('patient_doctor_requests')
+          .where('patientId', '==', patientId)
+          .where('doctorId', '==', doctorId)
+          .where('status', '==', 'pending')
+          .get();
+      } else {
+        // Email-only pending requests
+        pendingRequest = await this.db.collection('patient_doctor_requests')
+          .where('doctorId', '==', doctorId)
+          .where('status', '==', 'pending')
+          .get();
+      }
 
       if (!pendingRequest.empty) {
         // Cancel old pending requests
@@ -160,7 +181,7 @@ class PatientDoctorService {
       const requestData = {
         id: requestRef.id,
         doctorId,
-        patientId,
+        patientId: patientId || null,
         doctor: {
           id: doctorId,
           name: doctorData.name || 'Dr. Unknown',
@@ -169,9 +190,9 @@ class PatientDoctorService {
           specialization: doctorData.specialization || 'General Physician'
         },
         patient: {
-          id: patientId,
+          id: patientId || null,
           name: patientData.name || 'Unknown Patient',
-          email: patientData.email || 'unknown@example.com',
+          email: patientData.email || patientEmail || 'unknown@example.com',
           phone: patientData.phone || 'Not provided'
         },
         connectionMethod,
@@ -285,8 +306,7 @@ class PatientDoctorService {
         seen.add(doc.id);
         const data = doc.data();
         // Filter for pending requests and check if OTP is still valid
-        if (data.status === 'pending') {
-          // For 'direct' method (no OTP), accept as pending immediately
+        if (data.status === 'pending') {          // For 'direct' method (no OTP), accept as pending immediately
           const isDirect = data.connectionMethod === 'direct' || (!data.otp && !data.otpExpiry);
           if (isDirect) {
             requests.push({
