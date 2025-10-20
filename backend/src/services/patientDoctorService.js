@@ -286,7 +286,15 @@ class PatientDoctorService {
         const data = doc.data();
         // Filter for pending requests and check if OTP is still valid
         if (data.status === 'pending') {
-          if (data.otpExpiry && data.otpExpiry.toDate() > new Date()) {
+          // For 'direct' method (no OTP), accept as pending immediately
+          const isDirect = data.connectionMethod === 'direct' || (!data.otp && !data.otpExpiry);
+          if (isDirect) {
+            requests.push({
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt ? data.createdAt.toDate() : new Date()
+            });
+          } else if (data.otpExpiry && data.otpExpiry.toDate() > new Date()) {
             requests.push({
               id: doc.id,
               ...data,
