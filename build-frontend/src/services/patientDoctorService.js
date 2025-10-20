@@ -244,6 +244,9 @@ export const getPendingRequests = async (uid, email, currentUser = null) => {
     if (!currentUser) {
       const auth = getAuth();
       currentUser = auth.currentUser;
+      console.log('⚠️ getPendingRequests: Using fallback auth.currentUser with UID:', currentUser?.uid);
+    } else {
+      console.log('✅ getPendingRequests: Using provided currentUser with UID:', currentUser?.uid);
     }
     
     if (!currentUser) {
