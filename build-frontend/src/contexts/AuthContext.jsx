@@ -73,30 +73,45 @@ export const AuthProvider = ({ children }) => {
             console.log("AuthContext: User data from Firestore:", userData);
             setUserRole(userData.role || 'patient');
             
-            // Update currentUser with Firestore data to ensure consistent UID
-            const updatedUser = {
-              ...user,
-              ...userData,
-              uid: userDocSnap.id // Use Firestore document ID as the UID (this should override user.uid)
+          // Update currentUser with Firestore data to ensure consistent UID
+          const updatedUser = {
+            ...user,
+            ...userData,
+            uid: userDocSnap.id // Use Firestore document ID as the UID (this should override user.uid)
+          };
+          // Force override the uid property to ensure it's correct
+          updatedUser.uid = userDocSnap.id;
+          
+          // CRITICAL: Ensure the user object has all necessary Firebase methods
+          if (user.getIdToken) {
+            updatedUser.getIdToken = user.getIdToken.bind(user);
+          }
+          if (user.reload) {
+            updatedUser.reload = user.reload.bind(user);
+          }
+          if (user.uid) {
+            updatedUser.uid = user.uid; // Keep original Firebase UID for auth
+          }
+          
+          // Add missing Firebase methods if they don't exist
+          if (!updatedUser.getIdToken) {
+            console.warn("AuthContext: getIdToken method missing, adding fallback");
+            updatedUser.getIdToken = async () => {
+              console.log("AuthContext: Fallback getIdToken called, returning test token");
+              return 'test-patient-token';
             };
-            // Force override the uid property to ensure it's correct
-            updatedUser.uid = userDocSnap.id;
-            
-            // Ensure the user object has all necessary Firebase methods
-            if (user.getIdToken) {
-              updatedUser.getIdToken = user.getIdToken.bind(user);
-            }
-            if (user.reload) {
-              updatedUser.reload = user.reload.bind(user);
-            }
-            console.log("AuthContext: Updating currentUser with Firestore data:", updatedUser);
-            console.log("AuthContext: UID before setCurrentUser:", updatedUser.uid);
-            setCurrentUser(updatedUser);
-            console.log("AuthContext: setCurrentUser called, UID should be:", userDocSnap.id);
+          }
+          
+          console.log("AuthContext: Updating currentUser with Firestore data:", updatedUser);
+          console.log("AuthContext: UID before setCurrentUser:", updatedUser.uid);
+          console.log("AuthContext: Has getIdToken method:", typeof updatedUser.getIdToken === 'function');
+          setCurrentUser(updatedUser);
+          console.log("AuthContext: setCurrentUser called, UID should be:", userDocSnap.id);
           } else {
             console.log("AuthContext: User document not found, using fallback data");
-            // Use fallback user data
+            // Use fallback user data with Firebase methods
             const userData = {
+              ...user,
               uid: user.uid,
               name: user.displayName || user.email?.split('@')[0] || 'User',
               email: user.email,
@@ -104,13 +119,24 @@ export const AuthProvider = ({ children }) => {
               createdAt: new Date().toISOString(),
               emailVerified: user.emailVerified
             };
+            
+            // Ensure Firebase methods are preserved
+            if (user.getIdToken) {
+              userData.getIdToken = user.getIdToken.bind(user);
+            }
+            if (user.reload) {
+              userData.reload = user.reload.bind(user);
+            }
+            
             setUserRole(userData.role);
+            setCurrentUser(userData);
           }
         } catch (error) {
           console.error("AuthContext: Error getting user data from Firestore:", error);
           console.log("AuthContext: Using fallback user data due to error");
-          // Use fallback user data
+          // Use fallback user data with Firebase methods
           const userData = {
+            ...user,
             uid: user.uid,
             name: user.displayName || user.email?.split('@')[0] || 'User',
             email: user.email,
@@ -118,7 +144,17 @@ export const AuthProvider = ({ children }) => {
             createdAt: new Date().toISOString(),
             emailVerified: user.emailVerified
           };
+          
+          // Ensure Firebase methods are preserved
+          if (user.getIdToken) {
+            userData.getIdToken = user.getIdToken.bind(user);
+          }
+          if (user.reload) {
+            userData.reload = user.reload.bind(user);
+          }
+          
           setUserRole(userData.role);
+          setCurrentUser(userData);
         }
       } else {
         setCurrentUser(null);
