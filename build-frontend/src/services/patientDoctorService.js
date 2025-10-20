@@ -92,19 +92,22 @@ export const searchPatients = async (query) => {
  * @param {Object} requestData - Request data including patientId/email/phone and connectionMethod
  * @returns {Promise<Object>} Result of the request creation
  */
-export const createConnectionRequest = async (requestData) => {
+export const createConnectionRequest = async (requestData, currentUser = null) => {
   try {
     // Check if this is a test user - but still send real requests
     const isTestUser = localStorage.getItem('testUser') !== null;
-    
+
     if (isTestUser) {
       console.log('🧪 Test user detected - sending real connection request');
       // Don't simulate, send real request even for test users
     }
-    
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
-    
+
+    // Use provided currentUser or fallback to auth.currentUser
+    if (!currentUser) {
+      const auth = getAuth();
+      currentUser = auth.currentUser;
+    }
+
     if (!currentUser) {
       console.error('No authenticated user found');
       throw new Error('User not authenticated. Please sign in again.');
@@ -181,7 +184,7 @@ export const resendRequest = async (requestId) => {
     // In production, use a test token if Firebase auth fails
     let token;
     try {
-      token = await auth.currentUser?.getIdToken();
+      token = await currentUser?.getIdToken();
     } catch (error) {
       console.log('Firebase auth failed, using test token:', error.message);
       token = 'test-patient-token'; // Fallback for production
@@ -213,7 +216,7 @@ export const resendRequest = async (requestId) => {
  * @param {string} uid - Patient's UID (optional, uses current user)
  * @returns {Promise<Array>} Array of pending requests
  */
-export const getPendingRequests = async (uid, email) => {
+export const getPendingRequests = async (uid, email, currentUser = null) => {
   try {
     // Check if this is a test user
     const isTestUser = localStorage.getItem('testUser') !== null;
@@ -237,16 +240,20 @@ export const getPendingRequests = async (uid, email) => {
       ];
     }
     
-    const user = auth.currentUser;
+    // Use provided currentUser or fallback to auth.currentUser
+    if (!currentUser) {
+      const auth = getAuth();
+      currentUser = auth.currentUser;
+    }
     
-    if (!user) {
+    if (!currentUser) {
       throw new Error('User not authenticated');
     }
     
     // In production, use a test token if Firebase auth fails
     let token;
     try {
-      token = await user.getIdToken();
+      token = await currentUser.getIdToken();
     } catch (error) {
       console.log('Firebase auth failed, using test token:', error.message);
       token = 'test-patient-token'; // Fallback for production
@@ -297,7 +304,7 @@ export const acceptRequest = async (requestId, otp) => {
     // In production, use a test token if Firebase auth fails
     let token;
     try {
-      token = await auth.currentUser?.getIdToken();
+      token = await currentUser?.getIdToken();
     } catch (error) {
       console.log('Firebase auth failed, using test token:', error.message);
       token = 'test-patient-token'; // Fallback for production
@@ -330,7 +337,7 @@ export const acceptRequest = async (requestId, otp) => {
  * @param {string} uid - Patient's UID (optional, uses current user)
  * @returns {Promise<Array>} Array of connected doctors
  */
-export const getConnectedDoctors = async (uid) => {
+export const getConnectedDoctors = async (uid, currentUser = null) => {
   try {
     // Check if this is a test user
     const isTestUser = localStorage.getItem('testUser') !== null;
@@ -354,7 +361,7 @@ export const getConnectedDoctors = async (uid) => {
     // In production, use a test token if Firebase auth fails
     let token;
     try {
-      token = await auth.currentUser?.getIdToken();
+      token = await currentUser?.getIdToken();
     } catch (error) {
       console.log('Firebase auth failed, using test token:', error.message);
       token = 'test-patient-token'; // Fallback for production
@@ -416,7 +423,7 @@ export const getConnectedPatients = async (uid) => {
     // In production, use a test token if Firebase auth fails
     let token;
     try {
-      token = await auth.currentUser?.getIdToken();
+      token = await currentUser?.getIdToken();
     } catch (error) {
       console.log('Firebase auth failed, using test token:', error.message);
       token = 'test-patient-token'; // Fallback for production
