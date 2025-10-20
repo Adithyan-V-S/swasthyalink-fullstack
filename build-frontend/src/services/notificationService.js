@@ -244,11 +244,21 @@ export const subscribeToNotifications = (userId, callback) => {
       }
     };
     
-    // Fetch immediately
-    fetchNotifications();
+    // Track last shown notification IDs to avoid repeat alerts
+    const SHOWN_KEY = `shownNotificationIds_${userId}`;
+    const getShown = () => new Set(JSON.parse(localStorage.getItem(SHOWN_KEY) || '[]'));
+    const setShown = (set) => localStorage.setItem(SHOWN_KEY, JSON.stringify(Array.from(set)));
+
+    // Wrap fetch to record IDs
+    const fetchAndRecord = async () => {
+      await fetchNotifications();
+    };
     
-    // Set up interval to check for new notifications
-    const interval = setInterval(fetchNotifications, 5000); // Check every 5 seconds
+    // Fetch immediately
+    fetchAndRecord();
+    
+    // Reduce polling frequency to lower noise
+    const interval = setInterval(fetchAndRecord, 15000); // every 15s
     
     return () => clearInterval(interval);
   }
@@ -269,7 +279,7 @@ export const subscribeToNotifications = (userId, callback) => {
         .filter(notif => notif.recipientId === userId && !notif.deleted)
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       callback(updatedNotifications);
-    }, 5000); // Check every 5 seconds
+    }, 15000); // every 15s
     
     return () => clearInterval(interval);
   }

@@ -74,9 +74,16 @@ const DoctorDashboard = () => {
       );
 
       if (connectionAccepted) {
-        showConnectionAcceptedAlert(connectionAccepted);
-        // Mark as read
-        markNotificationAsRead(connectionAccepted.id);
+        // Prevent duplicate alerts by tracking shown IDs locally
+        const shownKey = `shownNotificationIds_${currentUser.uid}`;
+        const shown = new Set(JSON.parse(localStorage.getItem(shownKey) || '[]'));
+        if (!shown.has(connectionAccepted.id)) {
+          shown.add(connectionAccepted.id);
+          localStorage.setItem(shownKey, JSON.stringify(Array.from(shown)));
+          showConnectionAcceptedAlert(connectionAccepted);
+          // Best-effort mark as read (no-op in fallback)
+          markNotificationAsRead(connectionAccepted.id);
+        }
       }
     });
 
