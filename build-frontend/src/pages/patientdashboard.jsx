@@ -225,6 +225,7 @@ const PatientDashboard = () => {
     }
     
     console.log('👥 Loading family members from Firestore for user:', currentUser.uid);
+    console.log('👥 Current user object:', currentUser);
     loadFamilyMembers();
   }, [currentUser]);
 
