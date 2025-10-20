@@ -239,18 +239,17 @@ class PatientDoctorService {
    * Get pending requests for a patient
    * @param {string} patientId - Patient's UID
    */
-  async getPendingRequests(patientId) {
+  async getPendingRequests(patientId, patientEmail) {
     try {
       // Check if Firebase is available
       if (!this.db) {
         console.log('⚠️ Firebase not available, returning fallback pending requests');
         
         // Return requests from fallback storage
-        const patientRequests = this.fallbackRequests.filter(req => 
-          req.patientId === patientId || 
-          req.patientEmail === patientId || 
-          req.status === 'pending'
-        );
+        const patientRequests = this.fallbackRequests.filter(req => {
+          const emailMatch = patientEmail ? (req.patientEmail === patientEmail || req.patient?.email === patientEmail) : false;
+          return (req.patientId === patientId || emailMatch) && req.status === 'pending';
+        });
         
         console.log('✅ Fallback requests found:', patientRequests.length);
         return { 
@@ -259,13 +258,31 @@ class PatientDoctorService {
         };
       }
 
-      // Simplified query to avoid index requirements
-      const requestsQuery = await this.db.collection('patient_doctor_requests')
-        .where('patientId', '==', patientId)
-        .get();
+      // Fetch by patientId
+      const byIdSnap = patientId
+        ? await this.db.collection('patient_doctor_requests')
+            .where('patientId', '==', patientId)
+            .get()
+        : { empty: true, docs: [] };
+
+      // Also fetch by patient email as a fallback (some docs may have patient object with email)
+      let byEmailSnap = { empty: true, docs: [] };
+      if (patientEmail) {
+        try {
+          byEmailSnap = await this.db.collection('patient_doctor_requests')
+            .where('patient.email', '==', patientEmail)
+            .get();
+        } catch (e) {
+          console.warn('Email-based request query failed (index may be needed):', e.message);
+        }
+      }
 
       const requests = [];
-      requestsQuery.forEach(doc => {
+      const allDocs = [...byIdSnap.docs, ...byEmailSnap.docs];
+      const seen = new Set();
+      allDocs.forEach(doc => {
+        if (seen.has(doc.id)) return; // de-dup
+        seen.add(doc.id);
         const data = doc.data();
         // Filter for pending requests and check if OTP is still valid
         if (data.status === 'pending') {

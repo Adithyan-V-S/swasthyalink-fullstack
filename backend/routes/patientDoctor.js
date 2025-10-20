@@ -117,7 +117,8 @@ router.get('/patient/connection-requests', requirePatient, async (req, res) => {
 router.get('/requests', requirePatient, async (req, res) => {
   try {
     const patientId = req.user.uid;
-    const result = await patientDoctorService.getPendingRequests(patientId);
+    const patientEmail = (req.user.email || '').toLowerCase();
+    const result = await patientDoctorService.getPendingRequests(patientId, patientEmail);
     res.json(result);
   } catch (error) {
     console.error('Error fetching pending requests:', error);
