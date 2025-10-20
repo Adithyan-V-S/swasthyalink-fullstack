@@ -401,4 +401,19 @@ router.post('/search-patient', requireDoctor, async (req, res) => {
   }
 });
 
+// Get notifications for doctor (Doctor only)
+router.get('/doctor/notifications', requireDoctor, async (req, res) => {
+  try {
+    const doctorId = req.user.uid;
+    const result = await patientDoctorService.getDoctorNotifications(doctorId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching doctor notifications:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch notifications'
+    });
+  }
+});
+
 module.exports = router;

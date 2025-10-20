@@ -195,10 +195,61 @@ export const subscribeToNotifications = (userId, callback) => {
   const isTestUser = localStorage.getItem('testUser') !== null;
 
   if (isTestUser) {
-    console.log('🧪 Using test user - returning empty notifications');
-    // Return empty notifications for test users
-    callback([]);
-    return () => {}; // Return empty unsubscribe function
+    console.log('🧪 Using test user - fetching notifications from backend');
+    
+    // Fetch notifications from backend for test users
+    const fetchNotifications = async () => {
+      try {
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        
+        if (!currentUser) {
+          console.log('No authenticated user for notifications');
+          callback([]);
+          return;
+        }
+        
+        let token;
+        try {
+          token = await currentUser.getIdToken();
+        } catch (error) {
+          console.log('Firebase auth failed, using test token for notifications:', error.message);
+          token = 'test-doctor-token'; // Fallback for production
+        }
+        
+        const API_BASE = import.meta.env.VITE_API_BASE_URL
+          ? `${import.meta.env.VITE_API_BASE_URL}/api/patient-doctor`
+          : 'https://swasthyalink-backend-v2.onrender.com/api/patient-doctor';
+        
+        const response = await fetch(`${API_BASE}/doctor/notifications`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Notifications fetched from backend:', data);
+          callback(data.notifications || []);
+        } else {
+          console.error('Failed to fetch notifications:', response.status);
+          callback([]);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        callback([]);
+      }
+    };
+    
+    // Fetch immediately
+    fetchNotifications();
+    
+    // Set up interval to check for new notifications
+    const interval = setInterval(fetchNotifications, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(interval);
   }
 
   // Check quota before subscribing
