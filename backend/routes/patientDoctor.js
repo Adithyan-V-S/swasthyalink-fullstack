@@ -138,8 +138,9 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
     const { requestId } = req.params;
     const { otp } = req.body;
     const patientId = req.user.uid;
+    const patientEmail = req.user.email;
 
-    const result = await patientDoctorService.acceptRequest(requestId, patientId, otp);
+    const result = await patientDoctorService.acceptRequest(requestId, patientId, patientEmail, otp);
     res.json(result);
   } catch (error) {
     console.error('Error accepting request:', error);

@@ -362,7 +362,7 @@ class PatientDoctorService {
    * @param {string} patientId - Patient's UID
    * @param {string} otp - OTP code (ignored for instant approval)
    */
-  async acceptRequest(requestId, patientId, otp) {
+  async acceptRequest(requestId, patientId, patientEmail, otp) {
     try {
       // Check if Firebase is available
       if (!this.db) {
@@ -435,15 +435,16 @@ class PatientDoctorService {
 
       // Verify request belongs to patient (check by ID or email)
       const patientIdMatch = requestData.patientId === patientId;
-      const patientEmailMatch = requestData.patient?.email && requestData.patient.email === patientId; // patientId might be email
-      const patientEmailFieldMatch = requestData.patientEmail && requestData.patientEmail === patientId; // patientId might be email
+      const patientEmailMatch = requestData.patient?.email && requestData.patient.email === patientEmail;
+      const patientEmailFieldMatch = requestData.patientEmail && requestData.patientEmail === patientEmail;
       
       if (!patientIdMatch && !patientEmailMatch && !patientEmailFieldMatch) {
         console.log('❌ Request ownership check failed:', {
           requestPatientId: requestData.patientId,
           requestPatientEmail: requestData.patient?.email,
           requestPatientEmailField: requestData.patientEmail,
-          providedPatientId: patientId
+          providedPatientId: patientId,
+          providedPatientEmail: patientEmail
         });
         throw new Error('Unauthorized');
       }
