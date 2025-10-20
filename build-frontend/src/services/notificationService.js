@@ -92,11 +92,11 @@ export const createNotification = async ({
 const notificationCache = new Map();
 const CACHE_DURATION = 30000; // 30 seconds
 
-// Firebase quota management - EMERGENCY MODE ACTIVE
+// Firebase quota management - Normal mode
 const QUOTA_LIMITS = {
-  DAILY_READS: 0, // Disable reads to prevent quota usage
-  DAILY_WRITES: 0, // Disable writes to prevent quota usage
-  DAILY_DELETES: 0 // Disable deletes to prevent quota usage
+  DAILY_READS: 1000, // Allow reasonable reads
+  DAILY_WRITES: 100, // Allow reasonable writes
+  DAILY_DELETES: 50 // Allow reasonable deletes
 };
 
 const quotaUsage = {
@@ -265,7 +265,7 @@ export const subscribeToNotifications = (userId, callback) => {
 
   // Check quota before subscribing
   if (!checkQuota('read')) {
-    console.warn('⚠️ Firebase read quota exceeded, using local storage fallback');
+    console.log('⚠️ Firebase read quota exceeded, using local storage fallback');
     // Use local storage fallback
     const localNotifications = JSON.parse(localStorage.getItem('localNotifications') || '[]')
       .filter(notif => notif.recipientId === userId && !notif.deleted)

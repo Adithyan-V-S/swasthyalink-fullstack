@@ -61,12 +61,34 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // EMERGENCY MODE: Skip Firestore operations due to quota exceeded
+        // Try to get user role from Firestore, with fallback
         try {
-          console.log("AuthContext: EMERGENCY MODE - Skipping Firestore operations due to quota exceeded");
-          console.log("AuthContext: Using fallback user data for UID:", user.uid);
-
-          // Use fallback user data to prevent blank page
+          console.log("AuthContext: Attempting to get user role from Firestore for UID:", user.uid);
+          
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            console.log("AuthContext: User data from Firestore:", userData);
+            setUserRole(userData.role || 'patient');
+          } else {
+            console.log("AuthContext: User document not found, using fallback data");
+            // Use fallback user data
+            const userData = {
+              uid: user.uid,
+              name: user.displayName || user.email?.split('@')[0] || 'User',
+              email: user.email,
+              role: "patient", // Default to patient role
+              createdAt: new Date().toISOString(),
+              emailVerified: user.emailVerified
+            };
+            setUserRole(userData.role);
+          }
+        } catch (error) {
+          console.error("AuthContext: Error getting user data from Firestore:", error);
+          console.log("AuthContext: Using fallback user data due to error");
+          // Use fallback user data
           const userData = {
             uid: user.uid,
             name: user.displayName || user.email?.split('@')[0] || 'User',
@@ -75,17 +97,7 @@ export const AuthProvider = ({ children }) => {
             createdAt: new Date().toISOString(),
             emailVerified: user.emailVerified
           };
-
-          console.log("AuthContext: Using fallback user data:", userData);
           setUserRole(userData.role);
-          console.log("AuthContext: User role set to:", userData.role);
-          setLoading(false);
-          return;
-
-        } catch (error) {
-          console.error("AuthContext: Error in emergency mode:", error);
-          // Even in error case, set a default role to prevent blank page
-          setUserRole("patient");
         }
       } else {
         setCurrentUser(null);
