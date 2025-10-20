@@ -243,6 +243,12 @@ const PatientDashboard = () => {
     loadPrescriptions();
   }, [currentUser]);
 
+  // Debug prescriptions state changes
+  useEffect(() => {
+    console.log('💊 Prescriptions state changed:', prescriptions);
+    console.log('💊 Prescriptions length:', prescriptions.length);
+  }, [prescriptions]);
+
   const loadFamilyMembers = async () => {
     try {
       // Use the service that has the correct backend URL
@@ -327,7 +333,9 @@ const PatientDashboard = () => {
           };
         });
         
+        console.log('💊 Setting prescriptions to:', transformedPrescriptions);
         setPrescriptions(transformedPrescriptions);
+        console.log('💊 Prescriptions state should now be updated');
       } else {
         console.error('❌ Failed to load prescriptions:', response.error);
         setPrescriptions([]);
@@ -337,6 +345,7 @@ const PatientDashboard = () => {
       setPrescriptions([]);
     } finally {
       setPrescriptionsLoading(false);
+      console.log('💊 Prescription loading completed, loading set to false');
     }
   };
 
@@ -777,11 +786,17 @@ const PatientDashboard = () => {
     </div>
   );
 
-  const renderPrescriptionsSection = () => (
-    <div className="w-full max-w-6xl space-y-8">
-      <section className="bg-white rounded-xl shadow-lg p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-indigo-700">My Prescriptions</h2>
+  const renderPrescriptionsSection = () => {
+    console.log('🔍 renderPrescriptionsSection called');
+    console.log('🔍 prescriptionsLoading:', prescriptionsLoading);
+    console.log('🔍 prescriptions array:', prescriptions);
+    console.log('🔍 prescriptions length:', prescriptions.length);
+    
+    return (
+      <div className="w-full max-w-6xl space-y-8">
+        <section className="bg-white rounded-xl shadow-lg p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-indigo-700">My Prescriptions</h2>
           {isTestUser() && (
             <button
               onClick={() => {
