@@ -82,7 +82,9 @@ export const AuthProvider = ({ children }) => {
             // Force override the uid property to ensure it's correct
             updatedUser.uid = userDocSnap.id;
             console.log("AuthContext: Updating currentUser with Firestore data:", updatedUser);
+            console.log("AuthContext: UID before setCurrentUser:", updatedUser.uid);
             setCurrentUser(updatedUser);
+            console.log("AuthContext: setCurrentUser called, UID should be:", userDocSnap.id);
           } else {
             console.log("AuthContext: User document not found, using fallback data");
             // Use fallback user data
