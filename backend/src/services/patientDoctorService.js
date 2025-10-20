@@ -20,6 +20,64 @@ class PatientDoctorService {
     this.fallbackRequests = [];
     this.fallbackRelationships = [];
     this.fallbackNotifications = [];
+    
+    // Initialize with mock data to match frontend
+    this.initializeMockData();
+  }
+
+  /**
+   * Initialize mock data to match frontend
+   */
+  initializeMockData() {
+    console.log('🧪 Initializing mock data for backend...');
+    
+    // Add mock pending requests that match frontend
+    this.fallbackRequests = [
+      {
+        id: '4hFqw4dVDDWDznzunpE5',
+        doctorId: 'test-doctor-sachus',
+        patientId: 'test-patient-uid',
+        patient: {
+          id: 'test-patient-uid',
+          name: '04_ADITHYAN V S INT MCA',
+          email: 'adithyanvs2026@mca.ajce.in'
+        },
+        doctor: {
+          id: 'test-doctor-sachus',
+          name: 'Dr. sachus',
+          email: 'sachus@example.com',
+          specialization: 'General Medicine'
+        },
+        connectionMethod: 'direct',
+        message: 'Dr. sachus wants to connect with you',
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'test-request-2',
+        doctorId: 'test-doctor-ann',
+        patientId: 'test-patient-uid',
+        patient: {
+          id: 'test-patient-uid',
+          name: '04_ADITHYAN V S INT MCA',
+          email: 'adithyanvs2026@mca.ajce.in'
+        },
+        doctor: {
+          id: 'test-doctor-ann',
+          name: 'Dr. ann mary',
+          email: 'annmary@example.com',
+          specialization: 'Cardiology'
+        },
+        connectionMethod: 'direct',
+        message: 'Dr. ann mary wants to connect with you',
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    
+    console.log('✅ Mock data initialized with', this.fallbackRequests.length, 'requests');
   }
 
   /**
