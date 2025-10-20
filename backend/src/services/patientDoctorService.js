@@ -548,16 +548,18 @@ class PatientDoctorService {
    * Get connected doctors for a patient
    * @param {string} patientId - Patient's UID
    */
-  async getConnectedDoctors(patientId) {
+  async getConnectedDoctors(patientId, patientEmail = null) {
     try {
       // Check if Firebase is available
       if (!this.db) {
         console.log('⚠️ Firebase not available, using fallback for connected doctors');
         
-        // Return doctors from fallback relationships
-        const patientRelationships = this.fallbackRelationships.filter(rel => 
-          rel.patientId === patientId && rel.status === 'active'
-        );
+        // Return doctors from fallback relationships (check by ID or email)
+        const patientRelationships = this.fallbackRelationships.filter(rel => {
+          const idMatch = rel.patientId === patientId;
+          const emailMatch = patientEmail && (rel.patient?.email === patientEmail || rel.patientEmail === patientEmail);
+          return (idMatch || emailMatch) && rel.status === 'active';
+        });
         
         const doctors = patientRelationships.map(rel => ({
           id: rel.doctorId,
@@ -577,10 +579,20 @@ class PatientDoctorService {
         };
       }
 
-      // Get all relationships for this patient
-      const relationshipsQuery = await this.db.collection('patient_doctor_relationships')
-        .where('patientId', '==', patientId)
-        .get();
+      // Get all relationships for this patient (by ID or email)
+      let relationshipsQuery;
+      if (patientId) {
+        relationshipsQuery = await this.db.collection('patient_doctor_relationships')
+          .where('patientId', '==', patientId)
+          .get();
+      } else if (patientEmail) {
+        // If no patientId, try to find by email
+        relationshipsQuery = await this.db.collection('patient_doctor_relationships')
+          .where('patient.email', '==', patientEmail)
+          .get();
+      } else {
+        return { success: true, connectedDoctors: [] };
+      }
 
       const doctors = [];
       

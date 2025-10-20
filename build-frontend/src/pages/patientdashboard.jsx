@@ -265,7 +265,7 @@ const PatientDashboard = () => {
         setIsLoadingRequests(true);
         const [pendingReqs, connectedDocs] = await Promise.all([
           getPendingRequests(currentUser.uid, currentUser.email, currentUser),
-          getConnectedDoctors(currentUser.uid, currentUser)
+          getConnectedDoctors(currentUser.uid, currentUser.email, currentUser)
         ]);
         
         console.log('PatientDashboard: Pending requests:', pendingReqs);

@@ -340,7 +340,7 @@ export const acceptRequest = async (requestId, otp) => {
  * @param {string} uid - Patient's UID (optional, uses current user)
  * @returns {Promise<Array>} Array of connected doctors
  */
-export const getConnectedDoctors = async (uid, currentUser = null) => {
+export const getConnectedDoctors = async (uid, email, currentUser = null) => {
   try {
     // Check if this is a test user
     const isTestUser = localStorage.getItem('testUser') !== null;
@@ -370,7 +370,12 @@ export const getConnectedDoctors = async (uid, currentUser = null) => {
       token = 'test-patient-token'; // Fallback for production
     }
     
-    const response = await fetch(`${API_BASE}/patient/doctors`, {
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (uid) params.append('patientId', uid);
+    if (email) params.append('patientEmail', email);
+    
+    const response = await fetch(`${API_BASE}/patient/doctors?${params.toString()}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
