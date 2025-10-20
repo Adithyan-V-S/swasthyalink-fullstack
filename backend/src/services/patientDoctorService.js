@@ -453,8 +453,29 @@ class PatientDoctorService {
     try {
       // Check if Firebase is available
       if (!this.db) {
-        console.log('⚠️ Firebase not available, returning empty connected doctors list');
-        return { success: true, connectedDoctors: [] };
+        console.log('⚠️ Firebase not available, using fallback for connected doctors');
+        
+        // Return doctors from fallback relationships
+        const patientRelationships = this.fallbackRelationships.filter(rel => 
+          rel.patientId === patientId && rel.status === 'active'
+        );
+        
+        const doctors = patientRelationships.map(rel => ({
+          id: rel.doctorId,
+          name: rel.doctor.name || 'Unknown Doctor',
+          email: rel.doctor.email || 'No email',
+          specialization: rel.doctor.specialization || 'General Medicine',
+          phone: rel.doctor.phone || 'No phone',
+          connectionDate: rel.createdAt,
+          lastInteraction: rel.updatedAt,
+          permissions: rel.permissions
+        }));
+        
+        console.log('✅ Fallback connected doctors found:', doctors.length);
+        return { 
+          success: true, 
+          connectedDoctors: doctors 
+        };
       }
 
       // Get all relationships for this patient
