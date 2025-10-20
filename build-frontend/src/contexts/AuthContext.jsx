@@ -72,6 +72,13 @@ export const AuthProvider = ({ children }) => {
             const userData = userDocSnap.data();
             console.log("AuthContext: User data from Firestore:", userData);
             setUserRole(userData.role || 'patient');
+            
+            // Update currentUser with Firestore data to ensure consistent UID
+            setCurrentUser({
+              ...user,
+              ...userData,
+              uid: userDocSnap.id // Use Firestore document ID as the UID
+            });
           } else {
             console.log("AuthContext: User document not found, using fallback data");
             // Use fallback user data
