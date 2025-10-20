@@ -260,7 +260,7 @@ const requireAuth = async (req, res, next) => {
     if (process.env.NODE_ENV === 'production') {
       req.user = {
         uid: 'production-user',
-        email: 'user@swasthyalink.com',
+        email: 'vsadithyan215@gmail.com',
         role: 'patient',
         name: 'Production User',
         status: 'active'
@@ -275,7 +275,7 @@ const requireAuth = async (req, res, next) => {
         console.log('⚠️ Firebase Admin not available, using fallback auth');
         req.user = {
           uid: 'fallback-user',
-          email: 'user@swasthyalink.com',
+          email: 'vsadithyan215@gmail.com',
           role: 'patient',
           name: 'Fallback User',
           status: 'active'
@@ -352,7 +352,7 @@ const requirePatient = async (req, res, next) => {
     if (process.env.NODE_ENV === 'production') {
       req.user = {
         uid: 'production-user',
-        email: 'user@swasthyalink.com',
+        email: 'vsadithyan215@gmail.com',
         role: 'patient',
         name: 'Production User',
         status: 'active'
@@ -367,7 +367,7 @@ const requirePatient = async (req, res, next) => {
         console.log('⚠️ Firebase Admin not available, using fallback auth');
         req.user = {
           uid: 'fallback-user',
-          email: 'user@swasthyalink.com',
+          email: 'vsadithyan215@gmail.com',
           role: 'patient',
           name: 'Fallback User',
           status: 'active'
