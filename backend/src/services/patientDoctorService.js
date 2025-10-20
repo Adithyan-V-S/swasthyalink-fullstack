@@ -15,6 +15,10 @@ class PatientDoctorService {
       console.log('⚠️ Firebase Firestore not available in PatientDoctorService - using in-memory storage');
       this.db = null;
     }
+    
+    // In-memory storage for fallback mode
+    this.fallbackRequests = [];
+    this.fallbackRelationships = [];
   }
 
   /**
@@ -31,10 +35,42 @@ class PatientDoctorService {
       // Check if Firebase is available
       if (!this.db) {
         console.log('⚠️ Firebase not available, using fallback for connection request');
-        // Return success for now - in production without Firebase
+        
+        // Create fallback request
+        const requestId = 'fallback-request-' + Date.now();
+        const fallbackRequest = {
+          id: requestId,
+          doctorId: doctorId,
+          patientId: patientId || 'unknown-patient',
+          patientEmail: patientEmail,
+          patientPhone: patientPhone,
+          connectionMethod: connectionMethod,
+          message: message,
+          status: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          doctor: {
+            id: doctorId,
+            name: 'Dr. Website Job Portal',
+            email: 'websitejobportal@gmail.com',
+            specialization: 'General Medicine',
+            phone: '+1234567890'
+          },
+          patient: {
+            id: patientId || 'unknown-patient',
+            name: 'Patient',
+            email: patientEmail || 'unknown@example.com',
+            phone: patientPhone || 'Not provided'
+          }
+        };
+        
+        // Store in fallback storage
+        this.fallbackRequests.push(fallbackRequest);
+        console.log('✅ Fallback request stored:', fallbackRequest);
+        
         return {
           success: true,
-          requestId: 'fallback-request-' + Date.now(),
+          requestId: requestId,
           message: 'Connection request created (fallback mode)'
         };
       }
@@ -207,8 +243,20 @@ class PatientDoctorService {
     try {
       // Check if Firebase is available
       if (!this.db) {
-        console.log('⚠️ Firebase not available, returning empty pending requests list');
-        return { success: true, requests: [] };
+        console.log('⚠️ Firebase not available, returning fallback pending requests');
+        
+        // Return requests from fallback storage
+        const patientRequests = this.fallbackRequests.filter(req => 
+          req.patientId === patientId || 
+          req.patientEmail === patientId || 
+          req.status === 'pending'
+        );
+        
+        console.log('✅ Fallback requests found:', patientRequests.length);
+        return { 
+          success: true, 
+          requests: patientRequests 
+        };
       }
 
       // Simplified query to avoid index requirements
