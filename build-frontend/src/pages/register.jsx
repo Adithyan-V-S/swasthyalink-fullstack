@@ -91,9 +91,9 @@ const Register = () => {
     return !/^\d+$/.test(name);
   };
 
-  // Validate password contains at least one letter, one number, one special character and minimum 8 chars
+  // Validate password contains at least one letter, one number, and minimum 8 chars (special characters optional)
   const validatePassword = (password) => {
-    return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/.test(password);
+    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(password);
   };
 
   const handleGoogleSignUp = async () => {
@@ -201,7 +201,7 @@ const Register = () => {
       setValidation((v) => ({ ...v, email: validateEmail(value) ? '' : 'Please enter a valid email address.' }));
     }
     if (name === 'password') {
-      setValidation((v) => ({ ...v, password: validatePassword(value) ? '' : 'Password must be at least 8 characters and include letters, numbers, and special characters.' }));
+      setValidation((v) => ({ ...v, password: validatePassword(value) ? '' : 'Password must be at least 8 characters and include both letters and numbers. Special characters are optional.' }));
       // Also check confirm
       setValidation((v) => ({ ...v, confirm: form.confirm && value !== form.confirm ? 'Passwords do not match.' : '' }));
     }
@@ -223,7 +223,7 @@ const Register = () => {
 
     // Validate password
     if (!validatePassword(form.password)) {
-      setValidation((v) => ({ ...v, password: 'Password must be at least 8 characters and include letters, numbers, and special characters.' }));
+      setValidation((v) => ({ ...v, password: 'Password must be at least 8 characters and include both letters and numbers. Special characters are optional.' }));
       return;
     }
 
