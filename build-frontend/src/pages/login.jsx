@@ -628,7 +628,10 @@ const Login = () => {
         const userDocSnap = await getDoc(userDocRef);
         const isDoctor = userDocSnap.exists() && userDocSnap.data().role === 'doctor';
         
-        if (!user.emailVerified && !isDoctor) {
+        // Skip email verification for Google sign-in users and doctors
+        const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
+        
+        if (!user.emailVerified && !isDoctor && !isGoogleUser) {
           setError(ERROR_MESSAGES.INVALID_EMAIL);
           setShowResend(true);
           setLoading(false);
