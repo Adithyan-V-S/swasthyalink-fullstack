@@ -319,11 +319,15 @@ const familyRequests = [];
 let db = null;
 let arrayUnion = null;
 let serverTimestamp = null;
+let doc = null;
+let getDoc = null;
 
 if (admin.apps.length > 0) {
   db = admin.firestore();
   arrayUnion = admin.firestore.FieldValue.arrayUnion;
   serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
+  doc = admin.firestore().doc;
+  getDoc = admin.firestore().getDoc;
 } else {
   console.log('⚠️ Firebase Firestore not available - using in-memory storage');
 }
@@ -835,8 +839,8 @@ app.get('/api/family/network', async (req, res) => {
     }
 
     console.log('🔍 Checking Firestore for family network...');
-    const networkRef = doc(db, 'familyNetworks', uid);
-    const networkSnap = await getDoc(networkRef);
+    const networkRef = db.collection('familyNetworks').doc(uid);
+    const networkSnap = await networkRef.get();
 
     if (!networkSnap.exists()) {
       console.log('👥 No family network found for user:', uid);
