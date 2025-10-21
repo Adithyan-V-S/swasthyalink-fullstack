@@ -310,6 +310,80 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Cleanup duplicate family members endpoint
+app.post('/api/cleanup-duplicates', async (req, res) => {
+  try {
+    const { uid } = req.body;
+    
+    if (!uid) {
+      return res.status(400).json({ success: false, error: 'UID is required' });
+    }
+    
+    console.log('🧹 Cleaning up duplicates for user:', uid);
+    
+    if (!db) {
+      return res.status(500).json({ success: false, error: 'Firestore not available' });
+    }
+    
+    const networkRef = db.collection('familyNetworks').doc(uid);
+    const networkSnap = await networkRef.get();
+    
+    if (!networkSnap.exists) {
+      return res.json({ success: true, message: 'No family network found', duplicatesRemoved: 0 });
+    }
+    
+    const data = networkSnap.data();
+    const members = data.members || [];
+    
+    console.log('👥 Found family members:', members.length);
+    
+    // Check for duplicates by email
+    const uniqueMembers = [];
+    const seenEmails = new Set();
+    
+    for (const member of members) {
+      const email = member.email?.toLowerCase();
+      if (!seenEmails.has(email)) {
+        seenEmails.add(email);
+        uniqueMembers.push(member);
+        console.log('✅ Keeping member:', member.name, member.email);
+      } else {
+        console.log('❌ Removing duplicate:', member.name, member.email);
+      }
+    }
+    
+    const duplicatesRemoved = members.length - uniqueMembers.length;
+    
+    if (duplicatesRemoved > 0) {
+      console.log(`🧹 Cleaning up duplicates: ${members.length} → ${uniqueMembers.length}`);
+      
+      // Update the document with unique members
+      await networkRef.update({
+        members: uniqueMembers
+      });
+      
+      console.log('✅ Duplicates removed successfully');
+    } else {
+      console.log('✅ No duplicates found');
+    }
+    
+    res.json({
+      success: true,
+      message: `Cleanup completed. Removed ${duplicatesRemoved} duplicates.`,
+      duplicatesRemoved,
+      totalMembers: members.length,
+      uniqueMembers: uniqueMembers.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Error cleaning up duplicates:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to cleanup duplicates: ' + error.message
+    });
+  }
+});
+
 const { v4: uuidv4 } = require('uuid');
 
 // In-memory data stores
