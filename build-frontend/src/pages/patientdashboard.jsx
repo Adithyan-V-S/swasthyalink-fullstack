@@ -251,9 +251,12 @@ const PatientDashboard = () => {
 
   const loadFamilyMembers = async () => {
     try {
+      console.log('👥 Loading family members for user:', currentUser?.uid);
+      console.log('👥 Current user object:', currentUser);
+      
       // Use the service that has the correct backend URL
       const { getConnectedDoctors } = await import('../services/patientDoctorService');
-      const response = await getConnectedDoctors();
+      const response = await getConnectedDoctors(currentUser?.uid, currentUser?.email, currentUser);
       
       if (response.success) {
         console.log('👥 Family members loaded from API:', response);
@@ -374,6 +377,9 @@ const PatientDashboard = () => {
         if (Array.isArray(connectedDocs)) {
           console.log('PatientDashboard: connectedDocs is array, setting directly');
           setConnectedDoctors(connectedDocs);
+        } else if (connectedDocs && connectedDocs.connectedDoctors) {
+          console.log('PatientDashboard: connectedDocs is object, extracting connectedDoctors array');
+          setConnectedDoctors(connectedDocs.connectedDoctors);
         } else if (connectedDocs && connectedDocs.doctors) {
           console.log('PatientDashboard: connectedDocs is object, extracting doctors array');
           setConnectedDoctors(connectedDocs.doctors);
