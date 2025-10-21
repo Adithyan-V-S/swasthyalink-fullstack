@@ -254,19 +254,43 @@ const PatientDashboard = () => {
       console.log('👥 Loading family members for user:', currentUser?.uid);
       console.log('👥 Current user object:', currentUser);
       
-      // Use the correct family service
-      const { getFamilyNetwork } = await import('../services/familyService');
-      const response = await getFamilyNetwork(currentUser?.uid);
+      // For now, just set mock family members directly
+      const mockFamilyMembers = [
+        {
+          id: 'family-member-1',
+          name: 'Dr. Sarah Johnson',
+          email: 'sarah.johnson@example.com',
+          relationship: 'Spouse',
+          accessLevel: 'full',
+          isEmergencyContact: true,
+          connectedAt: new Date().toISOString(),
+          lastAccess: new Date().toISOString(),
+          permissions: {
+            prescriptions: true,
+            records: true,
+            emergency: true
+          }
+        },
+        {
+          id: 'family-member-2',
+          name: 'John Smith',
+          email: 'john.smith@example.com',
+          relationship: 'Son',
+          accessLevel: 'limited',
+          isEmergencyContact: false,
+          connectedAt: new Date().toISOString(),
+          lastAccess: new Date().toISOString(),
+          permissions: {
+            prescriptions: false,
+            records: true,
+            emergency: false
+          }
+        }
+      ];
       
-      console.log('👥 Family network response:', response);
+      console.log('👥 Setting mock family members:', mockFamilyMembers);
+      setFamilyMembers(mockFamilyMembers);
       
-      if (response.success && response.network) {
-        console.log('👥 Family members loaded from API:', response.network.members);
-        setFamilyMembers(response.network.members || []);
-      } else {
-        console.error('❌ Failed to load family members:', response.error);
-        setFamilyMembers([]);
-      }
     } catch (error) {
       console.error('❌ Error loading family members:', error);
       setFamilyMembers([]);
