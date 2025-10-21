@@ -243,7 +243,8 @@ export const getPendingRequests = async (uid, email, currentUser = null) => {
     }
 
     console.log('🌐 Making API call to:', `${API_BASE}/requests`);
-    const response = await fetch(`${API_BASE}/requests`, {
+    const emailParam = email ? `?patientEmail=${encodeURIComponent(email)}` : '';
+    const response = await fetch(`${API_BASE}/requests${emailParam}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -357,7 +358,8 @@ export const getConnectedDoctors = async (uid, email, currentUser = null) => {
     }
 
     console.log('🌐 Making API call to:', `${API_BASE}/patient/doctors`);
-    const response = await fetch(`${API_BASE}/patient/doctors`, {
+    const emailParam = email ? `?email=${encodeURIComponent(email)}` : '';
+    const response = await fetch(`${API_BASE}/patient/doctors${emailParam}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
