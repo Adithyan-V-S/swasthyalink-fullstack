@@ -124,15 +124,40 @@ router.get('/requests', requirePatient, async (req, res) => {
     const patientEmail = (req.query.patientEmail || req.user.email || '').toLowerCase();
     console.log('🔍 Getting pending requests for:', { patientId, patientEmail });
     
-    // Check if the main test request has been accepted
-    const testRequestId = 'test-request-sachus';
-    const hasAcceptedSachus = acceptedRequests.has(testRequestId);
+    const requests = [];
     
-    // Always return test data for now, but filter out accepted requests
-    const testData = {
-      success: true,
-      requests: hasAcceptedSachus ? [] : [
-        {
+    // Try to get pending requests from Firestore first
+    try {
+      if (req.db) {
+        console.log('🔍 Reading pending requests from Firestore for patient:', patientId);
+        const requestsSnapshot = await req.db.collection('patient_doctor_requests')
+          .where('patientId', '==', patientId)
+          .where('status', '==', 'pending')
+          .get();
+        
+        if (!requestsSnapshot.empty) {
+          requestsSnapshot.forEach(doc => {
+            const request = doc.data();
+            requests.push(request);
+          });
+          console.log('✅ Found', requests.length, 'pending requests in Firestore');
+        } else {
+          console.log('⚠️ No pending requests found in Firestore');
+        }
+      } else {
+        console.log('⚠️ Firestore not available, using fallback');
+      }
+    } catch (error) {
+      console.log('❌ Error reading from Firestore:', error.message);
+    }
+    
+    // Fallback: Add test data if no requests found
+    if (requests.length === 0) {
+      const testRequestId = 'test-request-sachus';
+      const hasAcceptedSachus = acceptedRequests.has(testRequestId);
+      
+      if (!hasAcceptedSachus) {
+        requests.push({
           id: testRequestId,
           doctorId: 'test-doctor-sachus',
           patientId: patientId,
@@ -152,8 +177,13 @@ router.get('/requests', requirePatient, async (req, res) => {
           status: 'pending',
           createdAt: new Date(),
           updatedAt: new Date()
-        }
-      ]
+        });
+      }
+    }
+    
+    const testData = {
+      success: true,
+      requests: requests
     };
     
     console.log('📊 Pending requests result:', testData);

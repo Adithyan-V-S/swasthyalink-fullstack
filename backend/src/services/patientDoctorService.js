@@ -185,6 +185,8 @@ class PatientDoctorService {
         };
       }
 
+      console.log('🔍 Firebase available, attempting to save to Firestore...');
+
       // Find patient by ID, email, or phone
       let patientDoc = null;
       let patientData = null;
