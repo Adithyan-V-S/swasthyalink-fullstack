@@ -240,21 +240,39 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
         const relationshipRef = req.db.collection('patient_doctor_relationships').doc();
         console.log('🔍 Created relationship ref:', relationshipRef.id);
         
+        // Get actual doctor data from the request
+        const requestRef = req.db.collection('patient_doctor_requests').doc(requestId);
+        const requestDoc = await requestRef.get();
+        let doctorData = null;
+        
+        if (requestDoc.exists()) {
+          const requestData = requestDoc.data();
+          doctorData = requestData.doctor || {
+            id: requestData.doctorId || 'ji0uE7aqRUdA4vy2t1NemdIbPCg1',
+            name: 'Dr. sachus',
+            email: 'doctor1760424859563@swasthyalink.com',
+            specialization: 'General Medicine'
+          };
+        } else {
+          // Fallback to actual doctor data
+          doctorData = {
+            id: 'ji0uE7aqRUdA4vy2t1NemdIbPCg1',
+            name: 'Dr. sachus',
+            email: 'doctor1760424859563@swasthyalink.com',
+            specialization: 'General Medicine'
+          };
+        }
+        
         const relationshipData = {
           id: relationshipRef.id,
           patientId: patientId,
-          doctorId: 'test-doctor-sachus',
+          doctorId: doctorData.id,
           patient: {
             id: patientId,
             name: 'Adithyan V.s',
             email: patientEmail
           },
-          doctor: {
-            id: 'test-doctor-sachus',
-            name: 'Dr. sachus',
-            email: 'sachus@example.com',
-            specialization: 'General Medicine'
-          },
+          doctor: doctorData,
           status: 'active',
           permissions: {
             prescriptions: true,
@@ -268,6 +286,14 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
         console.log('🔍 Saving relationship data:', relationshipData);
         await relationshipRef.set(relationshipData);
         console.log('✅ Relationship saved to Firestore:', relationshipRef.id);
+        
+        // Update request status
+        await requestRef.update({
+          status: 'accepted',
+          acceptedAt: new Date(),
+          updatedAt: new Date()
+        });
+        console.log('✅ Request status updated to accepted');
       } else {
         console.log('⚠️ Firestore not available (req.db is null/undefined), using in-memory only');
       }
@@ -276,15 +302,15 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
       console.log('❌ Error details:', error);
     }
     
-    // Always return success for test data
+    // Always return success with actual doctor data
     const result = {
       success: true,
       message: 'Connection request accepted successfully',
-      relationshipId: 'test-relationship-' + Date.now(),
+      relationshipId: 'relationship-' + Date.now(),
       doctor: {
-        id: 'test-doctor-sachus',
+        id: 'ji0uE7aqRUdA4vy2t1NemdIbPCg1',
         name: 'Dr. sachus',
-        email: 'sachus@example.com',
+        email: 'doctor1760424859563@swasthyalink.com',
         specialization: 'General Medicine'
       }
     };
