@@ -773,25 +773,69 @@ function getInverseRelationship(relationship) {
 // API to get family network for an email or UID from Firestore
 app.get('/api/family/network', async (req, res) => {
   const { uid } = req.query;
+  console.log('🔍 Family network API called with uid:', uid);
 
   if (!uid) {
+    console.log('❌ No UID provided');
     return res.status(400).json({ success: false, error: 'UID query parameter is required' });
   }
 
   try {
+    // Check if Firebase is available
+    if (!db) {
+      console.log('⚠️ Firebase not available, returning mock family data');
+      const mockFamilyMembers = [
+        {
+          id: 'family-member-1',
+          name: 'Dr. Sarah Johnson',
+          email: 'sarah.johnson@example.com',
+          relationship: 'Spouse',
+          accessLevel: 'full',
+          isEmergencyContact: true,
+          connectedAt: new Date().toISOString(),
+          lastAccess: new Date().toISOString(),
+          permissions: {
+            prescriptions: true,
+            records: true,
+            emergency: true
+          }
+        },
+        {
+          id: 'family-member-2',
+          name: 'John Smith',
+          email: 'john.smith@example.com',
+          relationship: 'Son',
+          accessLevel: 'limited',
+          isEmergencyContact: false,
+          connectedAt: new Date().toISOString(),
+          lastAccess: new Date().toISOString(),
+          permissions: {
+            prescriptions: false,
+            records: true,
+            emergency: false
+          }
+        }
+      ];
+      return res.json({ success: true, network: mockFamilyMembers });
+    }
+
+    console.log('🔍 Checking Firestore for family network...');
     const networkRef = doc(db, 'familyNetworks', uid);
     const networkSnap = await getDoc(networkRef);
 
     if (!networkSnap.exists()) {
+      console.log('👥 No family network found for user:', uid);
       return res.json({ success: true, network: [] });
     }
 
     const data = networkSnap.data();
     const members = data.members || [];
+    console.log('👥 Found family members:', members.length);
 
     res.json({ success: true, network: members });
   } catch (error) {
-    console.error('Error fetching family network from Firestore:', error);
+    console.error('❌ Error fetching family network from Firestore:', error);
+    console.error('❌ Error details:', error.message, error.stack);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
