@@ -177,10 +177,46 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
 
     console.log('🔍 Accepting request:', { requestId, patientId, patientEmail, otp });
     
-    // Track accepted requests
+    // Track accepted requests in memory
     acceptedRequests.add(requestId);
     console.log('✅ Request accepted and tracked:', requestId);
     console.log('📊 Accepted requests:', Array.from(acceptedRequests));
+    
+    // Also save to Firestore for persistence
+    try {
+      if (req.db) {
+        const relationshipRef = req.db.collection('patient_doctor_relationships').doc();
+        await relationshipRef.set({
+          id: relationshipRef.id,
+          patientId: patientId,
+          doctorId: 'test-doctor-sachus',
+          patient: {
+            id: patientId,
+            name: 'Adithyan V.s',
+            email: patientEmail
+          },
+          doctor: {
+            id: 'test-doctor-sachus',
+            name: 'Dr. sachus',
+            email: 'sachus@example.com',
+            specialization: 'General Medicine'
+          },
+          status: 'active',
+          permissions: {
+            prescriptions: true,
+            records: true,
+            emergency: false
+          },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        console.log('✅ Relationship saved to Firestore:', relationshipRef.id);
+      } else {
+        console.log('⚠️ Firestore not available, using in-memory only');
+      }
+    } catch (error) {
+      console.log('❌ Failed to save to Firestore:', error.message);
+    }
     
     // Always return success for test data
     const result = {
@@ -306,54 +342,49 @@ router.get('/patient/doctors', requirePatient, async (req, res) => {
     const patientEmail = req.query.email || req.user.email;
     console.log('🔍 Getting connected doctors for:', { patientId, patientEmail });
     
-    // Check if sachus has been accepted and include them in connected doctors
-    const testRequestId = 'test-request-sachus';
-    const hasAcceptedSachus = acceptedRequests.has(testRequestId);
-    
     const doctors = [];
     
-    // Add Dr. ann mary (always present)
-    doctors.push({
-      id: 'test-doctor-ann',
-      patientId: patientId,
-      doctorId: 'test-doctor-ann',
-      patient: {
-        id: patientId,
-        name: 'Adithyan V.s',
-        email: patientEmail
-      },
-      doctor: {
-        id: 'test-doctor-ann',
-        name: 'Dr. ann mary',
-        email: 'annmary@example.com',
-        specialization: 'Cardiology'
-      },
-      status: 'active',
-      permissions: {
-        prescriptions: true,
-        records: true,
-        emergency: false
-      },
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+    // Try to get relationships from Firestore first
+    try {
+      if (req.db) {
+        console.log('🔍 Reading relationships from Firestore for patient:', patientId);
+        const relationshipsSnapshot = await req.db.collection('patient_doctor_relationships')
+          .where('patientId', '==', patientId)
+          .where('status', '==', 'active')
+          .get();
+        
+        if (!relationshipsSnapshot.empty) {
+          relationshipsSnapshot.forEach(doc => {
+            const relationship = doc.data();
+            doctors.push(relationship);
+          });
+          console.log('✅ Found', doctors.length, 'relationships in Firestore');
+        } else {
+          console.log('⚠️ No relationships found in Firestore, using fallback');
+        }
+      } else {
+        console.log('⚠️ Firestore not available, using in-memory fallback');
+      }
+    } catch (error) {
+      console.log('❌ Error reading from Firestore:', error.message);
+    }
     
-    // Add Dr. sachus if accepted
-    if (hasAcceptedSachus) {
+    // Fallback: Add Dr. ann mary if no relationships found
+    if (doctors.length === 0) {
       doctors.push({
-        id: 'test-doctor-sachus',
+        id: 'test-doctor-ann',
         patientId: patientId,
-        doctorId: 'test-doctor-sachus',
+        doctorId: 'test-doctor-ann',
         patient: {
           id: patientId,
           name: 'Adithyan V.s',
           email: patientEmail
         },
         doctor: {
-          id: 'test-doctor-sachus',
-          name: 'Dr. sachus',
-          email: 'sachus@example.com',
-          specialization: 'General Medicine'
+          id: 'test-doctor-ann',
+          name: 'Dr. ann mary',
+          email: 'annmary@example.com',
+          specialization: 'Cardiology'
         },
         status: 'active',
         permissions: {

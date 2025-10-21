@@ -1146,7 +1146,10 @@ app.use('/api/presence', presenceRoutes);
 
 // Import and use patient-doctor relationship routes
 const patientDoctorRoutes = require('./routes/patientDoctor');
-app.use('/api/patient-doctor', patientDoctorRoutes);
+app.use('/api/patient-doctor', (req, res, next) => {
+  req.db = db;
+  next();
+}, patientDoctorRoutes);
 
 // Import and use OTP routes
 const otpRoutes = require('./routes/otp');
