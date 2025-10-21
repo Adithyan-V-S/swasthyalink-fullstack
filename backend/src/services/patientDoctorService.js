@@ -9,6 +9,9 @@ const otpService = require('./otpService');
 class PatientDoctorService {
   constructor() {
     // Firebase Firestore - only initialize if Firebase Admin is available
+    console.log('🔍 Firebase apps available:', admin.apps.length);
+    console.log('🔍 Firebase db available:', admin.apps.length > 0);
+    
     if (admin.apps.length > 0) {
       this.db = admin.firestore();
       console.log('✅ Firebase Firestore initialized in PatientDoctorService');
