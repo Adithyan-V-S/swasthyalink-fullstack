@@ -17,7 +17,21 @@ class PatientDoctorService {
       console.log('✅ Firebase Firestore initialized in PatientDoctorService');
     } else {
       console.log('⚠️ Firebase Firestore not available in PatientDoctorService - using in-memory storage');
-      this.db = null;
+      console.log('🔍 Attempting to initialize Firebase manually...');
+      
+      // Try to initialize Firebase manually
+      try {
+        const serviceAccount = require('../../credentialss.json');
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          projectId: serviceAccount.project_id || 'swasthyakink'
+        });
+        this.db = admin.firestore();
+        console.log('✅ Firebase Firestore manually initialized in PatientDoctorService');
+      } catch (error) {
+        console.log('❌ Failed to manually initialize Firebase:', error.message);
+        this.db = null;
+      }
     }
     
     // In-memory storage for fallback mode
