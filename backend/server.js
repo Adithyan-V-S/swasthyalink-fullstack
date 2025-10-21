@@ -842,7 +842,7 @@ app.get('/api/family/network', async (req, res) => {
     const networkRef = db.collection('familyNetworks').doc(uid);
     const networkSnap = await networkRef.get();
 
-    if (!networkSnap.exists()) {
+    if (!networkSnap.exists) {
       console.log('👥 No family network found for user:', uid);
       return res.json({ success: true, network: [] });
     }
