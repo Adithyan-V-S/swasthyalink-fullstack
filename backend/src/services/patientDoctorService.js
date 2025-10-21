@@ -49,16 +49,21 @@ class PatientDoctorService {
   initializeMockData() {
     console.log('🧪 Initializing mock data for backend...');
     
+    // Always create fresh test data for the current user
+    const currentTime = new Date();
+    const patientId = 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293';
+    const patientEmail = 'vsadithyan215@gmail.com';
+    
     // Add mock pending requests that match frontend
     this.fallbackRequests = [
       {
-        id: '4hFqw4dVDDWDznzunpE5',
+        id: 'test-request-' + Date.now(),
         doctorId: 'test-doctor-sachus',
-        patientId: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+        patientId: patientId,
         patient: {
-          id: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+          id: patientId,
           name: 'Adithyan V.s',
-          email: 'vsadithyan215@gmail.com'
+          email: patientEmail
         },
         doctor: {
           id: 'test-doctor-sachus',
@@ -69,8 +74,8 @@ class PatientDoctorService {
         connectionMethod: 'direct',
         message: 'Dr. sachus wants to connect with you',
         status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: currentTime,
+        updatedAt: currentTime
       },
       {
         id: 'test-request-2',
@@ -98,13 +103,13 @@ class PatientDoctorService {
     // Add mock connected doctors
     this.fallbackRelationships = [
       {
-        id: 'connected-doctor-1',
-        patientId: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+        id: 'connected-doctor-' + Date.now(),
+        patientId: patientId,
         doctorId: 'test-doctor-ann',
         patient: {
-          id: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+          id: patientId,
           name: 'Adithyan V.s',
-          email: 'vsadithyan215@gmail.com'
+          email: patientEmail
         },
         doctor: {
           id: 'test-doctor-ann',
@@ -118,8 +123,8 @@ class PatientDoctorService {
           records: true,
           emergency: false
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: currentTime,
+        updatedAt: currentTime
       }
     ];
     
