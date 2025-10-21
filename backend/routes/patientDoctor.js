@@ -453,9 +453,23 @@ router.get('/patient/doctors', async (req, res) => {
       });
     }
     
+    // Remove duplicates based on doctor ID
+    const uniqueDoctors = [];
+    const seenDoctorIds = new Set();
+    
+    doctors.forEach(doctor => {
+      const doctorId = doctor.doctorId || doctor.doctor?.id;
+      if (doctorId && !seenDoctorIds.has(doctorId)) {
+        seenDoctorIds.add(doctorId);
+        uniqueDoctors.push(doctor);
+      }
+    });
+    
+    console.log(`🧹 Deduplication: ${doctors.length} -> ${uniqueDoctors.length} doctors`);
+    
     const testData = {
       success: true,
-      doctors: doctors
+      doctors: uniqueDoctors
     };
     
     console.log('📊 Connected doctors result:', testData);
