@@ -305,6 +305,9 @@ export const acceptRequest = async (requestId, otp) => {
       token = 'test-patient-token'; // Fallback for production
     }
     
+    console.log('🌐 Making accept request API call to:', `${API_BASE}/accept/${requestId}`);
+    console.log('🔑 Using token:', token.substring(0, 20) + '...');
+    
     const response = await fetch(`${API_BASE}/accept/${requestId}`, {
       method: 'POST',
       headers: {
@@ -313,6 +316,9 @@ export const acceptRequest = async (requestId, otp) => {
       },
       body: JSON.stringify({ otp }),
     });
+    
+    console.log('📡 Accept request API response status:', response.status);
+    console.log('📡 Accept request API response ok:', response.ok);
 
     if (!response.ok) {
       const errorData = await response.json();
