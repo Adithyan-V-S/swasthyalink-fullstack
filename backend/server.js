@@ -303,10 +303,20 @@ const client = await auth.getClient();
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     dialogflow: sessionClient ? 'connected' : 'simulated'
+  });
+});
+
+// Test endpoint for connection requests
+app.post('/api/test-connection-request', (req, res) => {
+  console.log('🧪 Test connection request received:', req.body);
+  res.json({
+    success: true,
+    message: 'Test connection request received',
+    data: req.body
   });
 });
 
