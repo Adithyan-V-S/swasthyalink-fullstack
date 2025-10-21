@@ -814,6 +814,21 @@ app.get('/api/family/network', async (req, res) => {
             records: true,
             emergency: false
           }
+        },
+        {
+          id: 'family-member-3',
+          name: 'Dr. Michael Brown',
+          email: 'michael.brown@example.com',
+          relationship: 'Brother',
+          accessLevel: 'full',
+          isEmergencyContact: true,
+          connectedAt: new Date().toISOString(),
+          lastAccess: new Date().toISOString(),
+          permissions: {
+            prescriptions: true,
+            records: true,
+            emergency: true
+          }
         }
       ];
       return res.json({ success: true, network: mockFamilyMembers });
