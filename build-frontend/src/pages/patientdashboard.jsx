@@ -254,17 +254,12 @@ const PatientDashboard = () => {
       console.log('👥 Loading family members for user:', currentUser?.uid);
       console.log('👥 Current user object:', currentUser);
       
-      // Use the service that has the correct backend URL
-      const { getConnectedDoctors } = await import('../services/patientDoctorService');
-      const response = await getConnectedDoctors(currentUser?.uid, currentUser?.email, currentUser);
+      // Use the correct family service
+      const { getFamilyNetwork } = await import('../services/familyService');
+      const familyMembers = await getFamilyNetwork(currentUser?.uid);
       
-      if (response.success) {
-        console.log('👥 Family members loaded from API:', response);
-        setFamilyMembers(response.connectedDoctors || []);
-      } else {
-        console.error('❌ Failed to load family members:', response.error);
-        setFamilyMembers([]);
-      }
+      console.log('👥 Family members loaded from API:', familyMembers);
+      setFamilyMembers(familyMembers || []);
     } catch (error) {
       console.error('❌ Error loading family members:', error);
       setFamilyMembers([]);
