@@ -363,7 +363,7 @@ export const getConnectedDoctors = async (uid, email, currentUser = null) => {
     
     // Always return mock data for now to ensure doctors show up
     console.log('🧪 Returning mock connected doctors for testing');
-    return {
+    const mockData = {
       success: true,
       connectedDoctors: [
         {
@@ -382,6 +382,8 @@ export const getConnectedDoctors = async (uid, email, currentUser = null) => {
         }
       ]
     };
+    console.log('🧪 Mock data being returned:', mockData);
+    return mockData;
     
     // In production, use a test token if Firebase auth fails
     let token;

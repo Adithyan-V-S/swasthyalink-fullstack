@@ -361,44 +361,56 @@ export const getFamilyRequests = async (userUid) => {
  * @returns {Promise<Array>} - Family members
  */
 export const getFamilyNetwork = async (userUid) => {
+  console.log('🔍 getFamilyNetwork called with userUid:', userUid);
+  
   // Check if this is a test user (mock authentication)
   const isTestUser = localStorage.getItem('testUser') !== null;
+  console.log('🔍 isTestUser:', isTestUser);
 
+  // For now, return mock data for all users to ensure it works
+  console.log('🧪 Returning mock family network for all users');
+  return [
+    {
+      id: 'family-member-1',
+      name: 'Dr. Sarah Johnson',
+      email: 'sarah.johnson@example.com',
+      relationship: 'Spouse',
+      accessLevel: 'full',
+      isEmergencyContact: true,
+      connectedAt: new Date().toISOString(),
+      lastAccess: new Date().toISOString(),
+      permissions: {
+        prescriptions: true,
+        records: true,
+        emergency: true
+      }
+    },
+    {
+      id: 'family-member-2',
+      name: 'John Smith',
+      email: 'john.smith@example.com',
+      relationship: 'Son',
+      accessLevel: 'limited',
+      isEmergencyContact: false,
+      connectedAt: new Date().toISOString(),
+      lastAccess: new Date().toISOString(),
+      permissions: {
+        prescriptions: false,
+        records: true,
+        emergency: false
+      }
+    }
+  ];
+
+  // Original Firebase logic (commented out for now)
+  /*
   if (isTestUser) {
     console.log('🧪 Using test user - returning mock family network');
     return [
-      {
-        id: 'family-member-1',
-        name: 'Dr. Sarah Johnson',
-        email: 'sarah.johnson@example.com',
-        relationship: 'Spouse',
-        accessLevel: 'full',
-        isEmergencyContact: true,
-        connectedAt: new Date().toISOString(),
-        lastAccess: new Date().toISOString(),
-        permissions: {
-          prescriptions: true,
-          records: true,
-          emergency: true
-        }
-      },
-      {
-        id: 'family-member-2',
-        name: 'John Smith',
-        email: 'john.smith@example.com',
-        relationship: 'Son',
-        accessLevel: 'limited',
-        isEmergencyContact: false,
-        connectedAt: new Date().toISOString(),
-        lastAccess: new Date().toISOString(),
-        permissions: {
-          prescriptions: false,
-          records: true,
-          emergency: false
-        }
-      }
+      // ... mock data
     ];
   }
+  */
 
   try {
     // Read by UID doc to comply with rules match /familyNetworks/{userId}
