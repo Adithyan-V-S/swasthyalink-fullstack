@@ -12,6 +12,11 @@ const { requireAuth, requireDoctor, requirePatient } = require('../src/middlewar
 // Simple in-memory tracking for accepted requests
 const acceptedRequests = new Set();
 
+// Test route to verify routes are working
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Patient-doctor routes are working!' });
+});
+
 // Create connection request (Doctor only)
 router.post('/connection-request', requireDoctor, async (req, res) => {
   try {

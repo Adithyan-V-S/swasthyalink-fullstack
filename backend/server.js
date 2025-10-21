@@ -1155,11 +1155,18 @@ const presenceRoutes = require('./routes/presence');
 app.use('/api/presence', presenceRoutes);
 
 // Import and use patient-doctor relationship routes
-const patientDoctorRoutes = require('./routes/patientDoctor');
-app.use('/api/patient-doctor', (req, res, next) => {
-  req.db = db;
-  next();
-}, patientDoctorRoutes);
+console.log('🔍 Loading patient-doctor routes...');
+try {
+  const patientDoctorRoutes = require('./routes/patientDoctor');
+  console.log('✅ Patient-doctor routes loaded successfully');
+  app.use('/api/patient-doctor', (req, res, next) => {
+    req.db = db;
+    next();
+  }, patientDoctorRoutes);
+  console.log('✅ Patient-doctor routes registered successfully');
+} catch (error) {
+  console.error('❌ Error loading patient-doctor routes:', error);
+}
 
 // Import and use OTP routes
 const otpRoutes = require('./routes/otp');
