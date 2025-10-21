@@ -256,10 +256,17 @@ const PatientDashboard = () => {
       
       // Use the correct family service
       const { getFamilyNetwork } = await import('../services/familyService');
-      const familyMembers = await getFamilyNetwork(currentUser?.uid);
+      const response = await getFamilyNetwork(currentUser?.uid);
       
-      console.log('👥 Family members loaded from API:', familyMembers);
-      setFamilyMembers(familyMembers || []);
+      console.log('👥 Family network response:', response);
+      
+      if (response.success && response.network) {
+        console.log('👥 Family members loaded from API:', response.network.members);
+        setFamilyMembers(response.network.members || []);
+      } else {
+        console.error('❌ Failed to load family members:', response.error);
+        setFamilyMembers([]);
+      }
     } catch (error) {
       console.error('❌ Error loading family members:', error);
       setFamilyMembers([]);

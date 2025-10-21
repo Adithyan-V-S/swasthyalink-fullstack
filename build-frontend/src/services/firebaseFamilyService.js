@@ -365,8 +365,39 @@ export const getFamilyNetwork = async (userUid) => {
   const isTestUser = localStorage.getItem('testUser') !== null;
 
   if (isTestUser) {
-    console.log('🧪 Using test user - returning empty family network');
-    return [];
+    console.log('🧪 Using test user - returning mock family network');
+    return [
+      {
+        id: 'family-member-1',
+        name: 'Dr. Sarah Johnson',
+        email: 'sarah.johnson@example.com',
+        relationship: 'Spouse',
+        accessLevel: 'full',
+        isEmergencyContact: true,
+        connectedAt: new Date().toISOString(),
+        lastAccess: new Date().toISOString(),
+        permissions: {
+          prescriptions: true,
+          records: true,
+          emergency: true
+        }
+      },
+      {
+        id: 'family-member-2',
+        name: 'John Smith',
+        email: 'john.smith@example.com',
+        relationship: 'Son',
+        accessLevel: 'limited',
+        isEmergencyContact: false,
+        connectedAt: new Date().toISOString(),
+        lastAccess: new Date().toISOString(),
+        permissions: {
+          prescriptions: false,
+          records: true,
+          emergency: false
+        }
+      }
+    ];
   }
 
   try {
