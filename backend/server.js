@@ -894,6 +894,10 @@ app.use('/api/otp', otpRoutes);
 const prescriptionRoutes = require('./routes/prescriptions');
 app.use('/api/prescriptions', prescriptionRoutes);
 
+// Import and use family routes
+const familyRoutes = require('./routes/family');
+app.use('/api/family', familyRoutes);
+
 // Import doctor model and auth middleware
 const DoctorModel = require('./src/models/doctorModel');
 const { requireAdmin, requireDoctor } = require('./src/middleware/auth');

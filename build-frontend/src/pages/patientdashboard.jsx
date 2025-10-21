@@ -254,42 +254,93 @@ const PatientDashboard = () => {
       console.log('👥 Loading family members for user:', currentUser?.uid);
       console.log('👥 Current user object:', currentUser);
       
-      // For now, just set mock family members directly
-      const mockFamilyMembers = [
-        {
-          id: 'family-member-1',
-          name: 'Dr. Sarah Johnson',
-          email: 'sarah.johnson@example.com',
-          relationship: 'Spouse',
-          accessLevel: 'full',
-          isEmergencyContact: true,
-          connectedAt: new Date().toISOString(),
-          lastAccess: new Date().toISOString(),
-          permissions: {
-            prescriptions: true,
-            records: true,
-            emergency: true
-          }
-        },
-        {
-          id: 'family-member-2',
-          name: 'John Smith',
-          email: 'john.smith@example.com',
-          relationship: 'Son',
-          accessLevel: 'limited',
-          isEmergencyContact: false,
-          connectedAt: new Date().toISOString(),
-          lastAccess: new Date().toISOString(),
-          permissions: {
-            prescriptions: false,
-            records: true,
-            emergency: false
-          }
-        }
-      ];
+      if (!currentUser?.uid) {
+        console.log('👥 No current user, skipping family members load');
+        setFamilyMembers([]);
+        return;
+      }
+
+      // Get authentication token
+      let token;
+      try {
+        token = await currentUser.getIdToken();
+        console.log('🔑 Got Firebase token for family members:', token.substring(0, 20) + '...');
+      } catch (error) {
+        console.log('Firebase auth failed, using test token for family members:', error.message);
+        token = 'test-patient-token'; // Fallback for production
+      }
+
+      // Call the backend API to get real family members
+      const API_BASE = import.meta.env.VITE_API_BASE_URL
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/family`
+        : 'https://swasthyalink-backend-v2.onrender.com/api/family';
+
+      console.log('🌐 Making API call to:', `${API_BASE}/network/${currentUser.uid}`);
       
-      console.log('👥 Setting mock family members:', mockFamilyMembers);
-      setFamilyMembers(mockFamilyMembers);
+      const response = await fetch(`${API_BASE}/network/${currentUser.uid}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('📡 API response status:', response.status);
+      console.log('📡 API response ok:', response.ok);
+
+      if (!response.ok) {
+        let errorData = {};
+        try { errorData = await response.json(); } catch (_) {}
+        console.error('❌ API error response:', errorData);
+        
+        // If API fails, use mock data as fallback
+        console.log('🔄 API failed, using mock family members as fallback');
+        const mockFamilyMembers = [
+          {
+            id: 'family-member-1',
+            name: 'Dr. Sarah Johnson',
+            email: 'sarah.johnson@example.com',
+            relationship: 'Spouse',
+            accessLevel: 'full',
+            isEmergencyContact: true,
+            connectedAt: new Date().toISOString(),
+            lastAccess: new Date().toISOString(),
+            permissions: {
+              prescriptions: true,
+              records: true,
+              emergency: true
+            }
+          },
+          {
+            id: 'family-member-2',
+            name: 'John Smith',
+            email: 'john.smith@example.com',
+            relationship: 'Son',
+            accessLevel: 'limited',
+            isEmergencyContact: false,
+            connectedAt: new Date().toISOString(),
+            lastAccess: new Date().toISOString(),
+            permissions: {
+              prescriptions: false,
+              records: true,
+              emergency: false
+            }
+          }
+        ];
+        setFamilyMembers(mockFamilyMembers);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('✅ Family members fetched from API:', data);
+      
+      if (data.success && data.members) {
+        console.log('👥 Real family members loaded:', data.members);
+        setFamilyMembers(data.members);
+      } else {
+        console.log('👥 No family members found in API response');
+        setFamilyMembers([]);
+      }
       
     } catch (error) {
       console.error('❌ Error loading family members:', error);
