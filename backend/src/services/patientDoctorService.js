@@ -36,11 +36,11 @@ class PatientDoctorService {
       {
         id: '4hFqw4dVDDWDznzunpE5',
         doctorId: 'test-doctor-sachus',
-        patientId: 'test-patient-uid',
+        patientId: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
         patient: {
-          id: 'test-patient-uid',
-          name: '04_ADITHYAN V S INT MCA',
-          email: 'adithyanvs2026@mca.ajce.in'
+          id: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+          name: 'Adithyan V.s',
+          email: 'vsadithyan215@gmail.com'
         },
         doctor: {
           id: 'test-doctor-sachus',
@@ -57,11 +57,11 @@ class PatientDoctorService {
       {
         id: 'test-request-2',
         doctorId: 'test-doctor-ann',
-        patientId: 'test-patient-uid',
+        patientId: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
         patient: {
-          id: 'test-patient-uid',
-          name: '04_ADITHYAN V S INT MCA',
-          email: 'adithyanvs2026@mca.ajce.in'
+          id: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+          name: 'Adithyan V.s',
+          email: 'vsadithyan215@gmail.com'
         },
         doctor: {
           id: 'test-doctor-ann',
@@ -77,7 +77,35 @@ class PatientDoctorService {
       }
     ];
     
-    console.log('✅ Mock data initialized with', this.fallbackRequests.length, 'requests');
+    // Add mock connected doctors
+    this.fallbackRelationships = [
+      {
+        id: 'connected-doctor-1',
+        patientId: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+        doctorId: 'test-doctor-ann',
+        patient: {
+          id: 'x9DFt0G9ZJfkmm4lvPKSNlL9Q293',
+          name: 'Adithyan V.s',
+          email: 'vsadithyan215@gmail.com'
+        },
+        doctor: {
+          id: 'test-doctor-ann',
+          name: 'Dr. ann mary',
+          email: 'annmary@example.com',
+          specialization: 'Cardiology'
+        },
+        status: 'active',
+        permissions: {
+          prescriptions: true,
+          records: true,
+          emergency: false
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    
+    console.log('✅ Mock data initialized with', this.fallbackRequests.length, 'requests and', this.fallbackRelationships.length, 'relationships');
   }
 
   /**
