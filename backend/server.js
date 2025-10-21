@@ -310,6 +310,120 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Create test connections endpoint
+app.post('/api/create-test-connections', async (req, res) => {
+  try {
+    const { uid, email } = req.body;
+    
+    if (!uid) {
+      return res.status(400).json({ success: false, error: 'UID is required' });
+    }
+    
+    console.log('🔍 Creating test connections for user:', uid);
+    
+    if (!db) {
+      return res.status(500).json({ success: false, error: 'Firestore not available' });
+    }
+    
+    // 1. Create a pending connection request
+    const requestRef = db.collection('patient_doctor_requests').doc();
+    const requestData = {
+      id: requestRef.id,
+      doctorId: 'test-doctor-sachus',
+      patientId: uid,
+      patientEmail: email || 'vsadithyan215@gmail.com',
+      doctor: {
+        id: 'test-doctor-sachus',
+        name: 'Dr. sachus',
+        email: 'sachus@example.com',
+        specialization: 'General Medicine'
+      },
+      patient: {
+        id: uid,
+        name: 'Adithyan V.s',
+        email: email || 'vsadithyan215@gmail.com'
+      },
+      connectionMethod: 'direct',
+      message: 'Dr. sachus wants to connect with you',
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    await requestRef.set(requestData);
+    console.log('✅ Created pending request:', requestRef.id);
+    
+    // 2. Create a connected doctor relationship
+    const relationshipRef = db.collection('patient_doctor_relationships').doc();
+    const relationshipData = {
+      id: relationshipRef.id,
+      patientId: uid,
+      doctorId: 'test-doctor-ann',
+      patient: {
+        id: uid,
+        name: 'Adithyan V.s',
+        email: email || 'vsadithyan215@gmail.com'
+      },
+      doctor: {
+        id: 'test-doctor-ann',
+        name: 'Dr. ann mary',
+        email: 'annmary@example.com',
+        specialization: 'Cardiology'
+      },
+      status: 'active',
+      permissions: {
+        prescriptions: true,
+        records: true,
+        emergency: false
+      },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    await relationshipRef.set(relationshipData);
+    console.log('✅ Created connected doctor relationship:', relationshipRef.id);
+    
+    // 3. Create a notification for the patient
+    const notificationRef = db.collection('notifications').doc();
+    const notificationData = {
+      id: notificationRef.id,
+      recipientId: uid,
+      senderId: 'test-doctor-sachus',
+      type: 'doctor_connection_request',
+      title: 'New Doctor Connection Request',
+      message: 'Dr. sachus wants to connect with you',
+      data: {
+        requestId: requestRef.id,
+        doctorName: 'Dr. sachus',
+        doctorEmail: 'sachus@example.com'
+      },
+      read: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    await notificationRef.set(notificationData);
+    console.log('✅ Created notification:', notificationRef.id);
+    
+    res.json({
+      success: true,
+      message: 'Test connections created successfully',
+      data: {
+        pendingRequest: requestRef.id,
+        connectedDoctor: relationshipRef.id,
+        notification: notificationRef.id
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error creating test connections:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create test connections: ' + error.message
+    });
+  }
+});
+
 // Cleanup duplicate family members endpoint
 app.post('/api/cleanup-duplicates', async (req, res) => {
   try {
