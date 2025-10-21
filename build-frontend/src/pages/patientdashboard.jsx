@@ -281,9 +281,9 @@ const PatientDashboard = () => {
         ? `${import.meta.env.VITE_API_BASE_URL}/api/family`
         : 'https://swasthyalink-backend-v2.onrender.com/api/family';
 
-      console.log('🌐 Making API call to:', `${API_BASE}/network/${currentUser.uid}`);
+      console.log('🌐 Making API call to:', `${API_BASE}/network?uid=${currentUser.uid}`);
       
-      const response = await fetch(`${API_BASE}/network/${currentUser.uid}`, {
+      const response = await fetch(`${API_BASE}/network?uid=${currentUser.uid}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -340,9 +340,9 @@ const PatientDashboard = () => {
       const data = await response.json();
       console.log('✅ Family members fetched from API:', data);
       
-      if (data.success && data.members) {
-        console.log('👥 Real family members loaded:', data.members);
-        setFamilyMembers(data.members);
+      if (data.success && data.network) {
+        console.log('👥 Real family members loaded:', data.network);
+        setFamilyMembers(data.network);
       } else {
         console.log('👥 No family members found in API response');
         setFamilyMembers([]);
