@@ -80,7 +80,9 @@ export const getFamilyRequests = async (userIdentifier) => {
 // Get family network (delegates to real Firestore service, adapts shape)
 export const getFamilyNetwork = async (userUid) => {
   try {
+    console.log('🔍 familyService.getFamilyNetwork called with userUid:', userUid);
     const members = await getFirebaseFamilyNetwork(userUid); // returns array of members
+    console.log('🔍 getFirebaseFamilyNetwork returned:', members);
     return {
       success: true,
       network: {
@@ -89,8 +91,13 @@ export const getFamilyNetwork = async (userUid) => {
       }
     };
   } catch (error) {
-    console.error('Error fetching family network from Firestore:', error);
-    return { success: false, error: error.message };
+    console.error('❌ Error fetching family network from Firestore:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return { success: false, error: error.message || 'Unknown error' };
   }
 };
 
