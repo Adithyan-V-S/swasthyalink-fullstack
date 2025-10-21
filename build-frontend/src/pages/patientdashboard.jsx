@@ -283,13 +283,20 @@ const PatientDashboard = () => {
 
       console.log('🌐 Making API call to:', `${API_BASE}/network?uid=${currentUser.uid}`);
       
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await fetch(`${API_BASE}/network?uid=${currentUser.uid}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       console.log('📡 API response status:', response.status);
       console.log('📡 API response ok:', response.ok);

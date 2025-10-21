@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connectivity Test</title>
+</head>
+<body>
+    <h1>API Connectivity Test</h1>
+    <button onclick="testAPI()">Test API Connection</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing API connectivity...</p>';
+
+            try {
+                // Test family network API
+                console.log('Testing family network API...');
+                const familyResponse = await fetch('https://swasthyalink-backend-v2.onrender.com/api/family/network?uid=x9DFt0G9ZJfkmm4lvPKSNlL9Q293', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer test-patient-token',
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                console.log('Family API response status:', familyResponse.status);
+                const familyData = await familyResponse.json();
+                console.log('Family API response data:', familyData);
+
+                // Test pending requests API
+                console.log('Testing pending requests API...');
+                const requestsResponse = await fetch('https://swasthyalink-backend-v2.onrender.com/api/patient-doctor/requests?patientEmail=vsadithyan215@gmail.com', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer test-patient-token',
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                console.log('Requests API response status:', requestsResponse.status);
+                const requestsData = await requestsResponse.json();
+                console.log('Requests API response data:', requestsData);
+
+                // Test connected doctors API
+                console.log('Testing connected doctors API...');
+                const doctorsResponse = await fetch('https://swasthyalink-backend-v2.onrender.com/api/patient-doctor/patient/doctors?email=vsadithyan215@gmail.com', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer test-patient-token',
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                console.log('Doctors API response status:', doctorsResponse.status);
+                const doctorsData = await doctorsResponse.json();
+                console.log('Doctors API response data:', doctorsData);
+
+                resultsDiv.innerHTML = `
+                    <h2>API Test Results:</h2>
+                    <p><strong>Family Network API:</strong> Status ${familyResponse.status} - ${familyData.success ? 'Success' : 'Failed'}</p>
+                    <p><strong>Pending Requests API:</strong> Status ${requestsResponse.status} - ${requestsData.success ? 'Success' : 'Failed'}</p>
+                    <p><strong>Connected Doctors API:</strong> Status ${doctorsResponse.status} - ${doctorsData.success ? 'Success' : 'Failed'}</p>
+                    <p><strong>Family Members:</strong> ${familyData.network ? familyData.network.length : 0}</p>
+                    <p><strong>Pending Requests:</strong> ${requestsData.requests ? requestsData.requests.length : 0}</p>
+                    <p><strong>Connected Doctors:</strong> ${doctorsData.doctors ? doctorsData.doctors.length : 0}</p>
+                `;
+
+            } catch (error) {
+                console.error('API test failed:', error);
+                resultsDiv.innerHTML = `<p style="color: red;">API test failed: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
