@@ -30,8 +30,10 @@ router.post('/test-connection', (req, res) => {
 // Create connection request (Doctor only) - temporarily without auth for debugging
 router.post('/connection-request', async (req, res) => {
   try {
-    const { patientId, patientEmail, patientPhone, connectionMethod, message } = req.body;
-    const doctorId = 'test-doctor-id'; // Temporary for debugging
+    const { patientId, patientEmail, patientPhone, connectionMethod, message, doctorId } = req.body;
+    
+    // Use doctorId from request body, or fallback to test ID
+    const actualDoctorId = doctorId || 'test-doctor-id';
 
     if (!patientId && !patientEmail && !patientPhone) {
       return res.status(400).json({
@@ -48,7 +50,7 @@ router.post('/connection-request', async (req, res) => {
     }
 
     const result = await patientDoctorService.sendConnectionRequest(
-      doctorId,
+      actualDoctorId,
       patientId,
       patientEmail,
       patientPhone,
