@@ -11,6 +11,7 @@ class PatientDoctorService {
     // Firebase Firestore - only initialize if Firebase Admin is available
     if (admin.apps.length > 0) {
       this.db = admin.firestore();
+      console.log('✅ Firebase Firestore initialized in PatientDoctorService');
     } else {
       console.log('⚠️ Firebase Firestore not available in PatientDoctorService - using in-memory storage');
       this.db = null;
@@ -453,10 +454,13 @@ class PatientDoctorService {
     try {
       console.log('🔍 acceptRequest called with:', { requestId, patientId, patientEmail, otp });
       console.log('🔍 Current fallback requests:', this.fallbackRequests);
+      console.log('🔍 Firebase db available:', !!this.db);
+      console.log('🔍 Firebase apps available:', admin.apps.length);
       
       // Check if Firebase is available
       if (!this.db) {
         console.log('⚠️ Firebase not available, using fallback for accept request');
+        console.log('🔍 Firebase apps available:', admin.apps.length);
         
         // Find request in fallback storage
         const requestIndex = this.fallbackRequests.findIndex(req => req.id === requestId);
