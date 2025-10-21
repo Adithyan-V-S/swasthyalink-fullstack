@@ -184,9 +184,16 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
     
     // Also save to Firestore for persistence
     try {
+      console.log('🔍 Checking Firestore availability...');
+      console.log('🔍 req.db exists:', !!req.db);
+      console.log('🔍 req.db type:', typeof req.db);
+      
       if (req.db) {
+        console.log('🔍 Firestore is available, attempting to save...');
         const relationshipRef = req.db.collection('patient_doctor_relationships').doc();
-        await relationshipRef.set({
+        console.log('🔍 Created relationship ref:', relationshipRef.id);
+        
+        const relationshipData = {
           id: relationshipRef.id,
           patientId: patientId,
           doctorId: 'test-doctor-sachus',
@@ -209,13 +216,17 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
           },
           createdAt: new Date(),
           updatedAt: new Date()
-        });
+        };
+        
+        console.log('🔍 Saving relationship data:', relationshipData);
+        await relationshipRef.set(relationshipData);
         console.log('✅ Relationship saved to Firestore:', relationshipRef.id);
       } else {
-        console.log('⚠️ Firestore not available, using in-memory only');
+        console.log('⚠️ Firestore not available (req.db is null/undefined), using in-memory only');
       }
     } catch (error) {
       console.log('❌ Failed to save to Firestore:', error.message);
+      console.log('❌ Error details:', error);
     }
     
     // Always return success for test data
