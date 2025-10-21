@@ -48,7 +48,9 @@ app.use(cors({
     'http://127.0.0.1:5173', 
     'http://127.0.0.1:5174',
     'https://swasthyalink-frontend.onrender.com',
-    'https://swasthyalink-frontend-v2.onrender.com'
+    'https://swasthyalink-frontend-v2.onrender.com',
+    'https://swasthyakink.web.app',
+    'https://swasthyakink.firebaseapp.com'
   ],
   credentials: true
 }));
