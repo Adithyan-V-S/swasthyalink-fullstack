@@ -270,6 +270,8 @@ const PatientDashboard = () => {
         token = 'test-patient-token'; // Fallback for production
       }
 
+      console.log('🔍 About to make API call for family members...');
+
       // Call the backend API to get real family members
       const API_BASE = import.meta.env.VITE_API_BASE_URL
         ? `${import.meta.env.VITE_API_BASE_URL}/api/family`
