@@ -240,6 +240,7 @@ class PatientDoctorService {
       
       if (!doctorDoc.exists) {
         console.log('⚠️ Doctor not found in Firestore, using fallback doctor data for ID:', doctorId);
+        console.log('🔧 FORCE DEPLOYMENT: Using fallback doctor data for sachus');
         // Create fallback doctor data
         doctorData = {
           id: doctorId,
