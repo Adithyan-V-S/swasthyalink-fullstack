@@ -9,6 +9,9 @@ const PatientDoctorModel = require('../src/models/patientDoctorModel');
 const patientDoctorService = require('../src/services/patientDoctorService');
 const { requireAuth, requireDoctor, requirePatient } = require('../src/middleware/auth');
 
+// Simple in-memory tracking for accepted requests
+const acceptedRequests = new Set();
+
 // Create connection request (Doctor only)
 router.post('/connection-request', requireDoctor, async (req, res) => {
   try {
@@ -121,12 +124,16 @@ router.get('/requests', requirePatient, async (req, res) => {
     const patientEmail = (req.query.patientEmail || req.user.email || '').toLowerCase();
     console.log('🔍 Getting pending requests for:', { patientId, patientEmail });
     
-    // Always return test data for now
+    // Check if the main test request has been accepted
+    const testRequestId = 'test-request-sachus';
+    const hasAcceptedSachus = acceptedRequests.has(testRequestId);
+    
+    // Always return test data for now, but filter out accepted requests
     const testData = {
       success: true,
-      requests: [
+      requests: hasAcceptedSachus ? [] : [
         {
-          id: 'test-request-' + Date.now(),
+          id: testRequestId,
           doctorId: 'test-doctor-sachus',
           patientId: patientId,
           patient: {
@@ -169,6 +176,11 @@ router.post('/accept/:requestId', requirePatient, async (req, res) => {
     const patientEmail = req.user.email;
 
     console.log('🔍 Accepting request:', { requestId, patientId, patientEmail, otp });
+    
+    // Track accepted requests
+    acceptedRequests.add(requestId);
+    console.log('✅ Request accepted and tracked:', requestId);
+    console.log('📊 Accepted requests:', Array.from(acceptedRequests));
     
     // Always return success for test data
     const result = {
@@ -294,35 +306,69 @@ router.get('/patient/doctors', requirePatient, async (req, res) => {
     const patientEmail = req.query.email || req.user.email;
     console.log('🔍 Getting connected doctors for:', { patientId, patientEmail });
     
-    // Always return test data for now
+    // Check if sachus has been accepted and include them in connected doctors
+    const testRequestId = 'test-request-sachus';
+    const hasAcceptedSachus = acceptedRequests.has(testRequestId);
+    
+    const doctors = [];
+    
+    // Add Dr. ann mary (always present)
+    doctors.push({
+      id: 'test-doctor-ann',
+      patientId: patientId,
+      doctorId: 'test-doctor-ann',
+      patient: {
+        id: patientId,
+        name: 'Adithyan V.s',
+        email: patientEmail
+      },
+      doctor: {
+        id: 'test-doctor-ann',
+        name: 'Dr. ann mary',
+        email: 'annmary@example.com',
+        specialization: 'Cardiology'
+      },
+      status: 'active',
+      permissions: {
+        prescriptions: true,
+        records: true,
+        emergency: false
+      },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
+    // Add Dr. sachus if accepted
+    if (hasAcceptedSachus) {
+      doctors.push({
+        id: 'test-doctor-sachus',
+        patientId: patientId,
+        doctorId: 'test-doctor-sachus',
+        patient: {
+          id: patientId,
+          name: 'Adithyan V.s',
+          email: patientEmail
+        },
+        doctor: {
+          id: 'test-doctor-sachus',
+          name: 'Dr. sachus',
+          email: 'sachus@example.com',
+          specialization: 'General Medicine'
+        },
+        status: 'active',
+        permissions: {
+          prescriptions: true,
+          records: true,
+          emergency: false
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+    
     const testData = {
       success: true,
-      doctors: [
-        {
-          id: 'test-doctor-' + Date.now(),
-          patientId: patientId,
-          doctorId: 'test-doctor-ann',
-          patient: {
-            id: patientId,
-            name: 'Adithyan V.s',
-            email: patientEmail
-          },
-          doctor: {
-            id: 'test-doctor-ann',
-            name: 'Dr. ann mary',
-            email: 'annmary@example.com',
-            specialization: 'Cardiology'
-          },
-          status: 'active',
-          permissions: {
-            prescriptions: true,
-            records: true,
-            emergency: false
-          },
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ]
+      doctors: doctors
     };
     
     console.log('📊 Connected doctors result:', testData);
