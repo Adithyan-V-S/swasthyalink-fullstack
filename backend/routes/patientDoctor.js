@@ -247,8 +247,11 @@ router.get('/search/patients', requireDoctor, async (req, res) => {
 router.get('/patient/doctors', requirePatient, async (req, res) => {
   try {
     const patientId = req.user.uid;
-    const patientEmail = req.user.email;
+    // Use query parameter if provided, otherwise use user email
+    const patientEmail = req.query.email || req.user.email;
+    console.log('🔍 Getting connected doctors for:', { patientId, patientEmail });
     const result = await patientDoctorService.getConnectedDoctors(patientId, patientEmail);
+    console.log('📊 Connected doctors result:', result);
     res.json(result);
   } catch (error) {
     console.error('Error fetching patient doctors:', error);
