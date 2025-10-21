@@ -17,6 +17,16 @@ router.get('/test', (req, res) => {
   res.json({ success: true, message: 'Patient-doctor routes are working!' });
 });
 
+// Simple test connection request without any auth
+router.post('/test-connection', (req, res) => {
+  console.log('🧪 Test connection request received:', req.body);
+  res.json({
+    success: true,
+    message: 'Test connection request received',
+    data: req.body
+  });
+});
+
 // Create connection request (Doctor only) - temporarily without auth for debugging
 router.post('/connection-request', async (req, res) => {
   try {
