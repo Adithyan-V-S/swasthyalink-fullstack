@@ -252,11 +252,10 @@ app.post('/api/gemini', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Message is required' });
     }
 
-const path = require('path');
-process.env.GOOGLE_APPLICATION_CREDENTIALS = path.join(__dirname, 'swasthyalink-468105-143623eabdaa.json');
-
+// Use environment variables for Gemini API credentials
 const auth = new GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/generative-language'],
+  credentials: process.env.GEMINI_CREDENTIALS ? JSON.parse(process.env.GEMINI_CREDENTIALS) : undefined,
 });
 const client = await auth.getClient();
 
