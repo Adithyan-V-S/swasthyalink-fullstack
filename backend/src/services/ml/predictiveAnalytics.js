@@ -3,6 +3,9 @@
  * Provides health risk assessment and predictive insights based on patient data
  */
 
+// Import real ML model for diabetes prediction
+const DiabetesMLModel = require('./diabetesMLModel');
+
 class PredictiveAnalyticsService {
   constructor() {
     this.riskFactors = {
@@ -76,8 +79,10 @@ class PredictiveAnalyticsService {
       },
       diabetes: {
         name: 'Type 2 Diabetes Risk',
-        factors: ['age', 'bmi', 'glucose', 'familyHistory', 'exercise'],
-        baseRisk: 0.03
+        diseaseType: 'diabetes',
+        factors: ['age', 'bmi', 'glucose', 'bloodPressure', 'pregnancies', 'insulin'],
+        baseRisk: 0.03,
+        isMLModel: true
       },
       stroke: {
         name: 'Stroke Risk',
@@ -263,6 +268,23 @@ class PredictiveAnalyticsService {
    * Calculate disease-specific risk
    */
   calculateDiseaseRisk(healthData, model) {
+    // Use real ML model for diabetes prediction
+    if (model.diseaseType === 'diabetes') {
+      const mlPrediction = DiabetesMLModel.predict(healthData);
+      if (mlPrediction.success) {
+        return {
+          risk: mlPrediction.probability,
+          level: mlPrediction.riskLevel,
+          category: mlPrediction.riskCategory,
+          confidence: mlPrediction.confidence,
+          interpretation: mlPrediction.interpretation,
+          isMLModel: true,
+          modelInfo: mlPrediction.modelInfo
+        };
+      }
+    }
+
+    // Fallback to rule-based calculation for other diseases
     let totalRisk = model.baseRisk;
     let totalWeight = 1; // Base risk weight
 
