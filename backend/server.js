@@ -241,8 +241,42 @@ app.post('/api/chatbot', async (req, res) => {
   }
 });
 
-// New Gemini API proxy endpoint using API key
+// New Gemini API proxy endpoint using service account
+const { GoogleAuth } = require('google-auth-library');
 const https = require('https');
+
+// Initialize Gemini client once at startup
+let geminiClient = null;
+
+// Initialize Gemini client
+const initializeGeminiClient = async () => {
+  try {
+    const credentials = process.env.GEMINI_CREDENTIALS ? JSON.parse(process.env.GEMINI_CREDENTIALS) : null;
+    console.log('🔑 Gemini credentials loaded:', credentials ? 'Yes' : 'No');
+    
+    if (credentials) {
+      // Ensure private key has proper line breaks
+      if (credentials.private_key) {
+        credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+      }
+      
+      const auth = new GoogleAuth({
+        scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+        credentials: credentials,
+      });
+      geminiClient = await auth.getClient();
+      console.log('✅ Gemini client initialized successfully');
+    } else {
+      console.log('⚠️ No Gemini credentials found, using fallback');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize Gemini client:', error.message);
+    geminiClient = null;
+  }
+};
+
+// Initialize Gemini client on startup
+initializeGeminiClient();
 
 app.post('/api/gemini', async (req, res) => {
   try {
@@ -251,9 +285,9 @@ app.post('/api/gemini', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Message is required' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.log('⚠️ No Gemini API key found, using fallback response');
+    // Check if client is available
+    if (!geminiClient) {
+      console.log('⚠️ Gemini client not available, using fallback response');
       const fallbackResponses = [
         "I'm currently experiencing technical difficulties. Please try again later.",
         "I'm temporarily unavailable. Please contact support if this persists.",
@@ -263,7 +297,7 @@ app.post('/api/gemini', async (req, res) => {
       return res.json({ success: true, response: fallbackResponse });
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     const body = {
       contents: [{
@@ -279,47 +313,15 @@ app.post('/api/gemini', async (req, res) => {
       }
     };
 
-    console.log('🔑 Making request to Gemini API with key:', apiKey.substring(0, 10) + '...');
+    console.log('🔑 Making request to Gemini API with service account');
 
-    // Use https module instead of fetch
-    const postData = JSON.stringify(body);
-    const urlObj = new URL(url);
-    
-    const options = {
-      hostname: urlObj.hostname,
-      port: 443,
-      path: urlObj.pathname + urlObj.search,
+    const response = await geminiClient.request({
+      url,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    };
-
-    const response = await new Promise((resolve, reject) => {
-      const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        res.on('end', () => {
-          resolve({
-            status: res.statusCode,
-            ok: res.statusCode >= 200 && res.statusCode < 300,
-            json: () => JSON.parse(data)
-          });
-        });
-      });
-
-      req.on('error', (error) => {
-        reject(error);
-      });
-
-      req.write(postData);
-      req.end();
+      data: body,
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       console.error('Gemini API error:', response.status);
       return res.status(response.status).json({ 
         success: false, 
@@ -328,7 +330,7 @@ app.post('/api/gemini', async (req, res) => {
       });
     }
 
-    const data = await response.json();
+    const data = response.data;
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
 
     console.log('✅ Gemini API response received successfully');
