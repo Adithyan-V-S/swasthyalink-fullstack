@@ -39,7 +39,7 @@ try {
   console.log('⚠️ Continuing without Firebase Admin - some features may be limited');
 }
 
-// Middleware
+// Middleware - Updated CORS for Firebase Hosting
 app.use(cors({
   origin: [
     'http://localhost:3000', 
