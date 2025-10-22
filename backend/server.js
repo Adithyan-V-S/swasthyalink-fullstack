@@ -253,11 +253,33 @@ app.post('/api/gemini', async (req, res) => {
     }
 
 // Use environment variables for Gemini API credentials
-const auth = new GoogleAuth({
-  scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/generative-language'],
-  credentials: process.env.GEMINI_CREDENTIALS ? JSON.parse(process.env.GEMINI_CREDENTIALS) : undefined,
-});
-const client = await auth.getClient();
+let auth, client;
+try {
+  const credentials = process.env.GEMINI_CREDENTIALS ? JSON.parse(process.env.GEMINI_CREDENTIALS) : null;
+  console.log('🔑 Gemini credentials loaded:', credentials ? 'Yes' : 'No');
+  
+  if (credentials) {
+    // Ensure private key has proper line breaks
+    if (credentials.private_key) {
+      credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+    }
+    
+    auth = new GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/generative-language'],
+      credentials: credentials,
+    });
+    client = await auth.getClient();
+    console.log('✅ Gemini client initialized successfully');
+  } else {
+    console.log('⚠️ No Gemini credentials found, using fallback');
+    auth = null;
+    client = null;
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Gemini client:', error.message);
+  auth = null;
+  client = null;
+}
 
     const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
@@ -274,6 +296,18 @@ const client = await auth.getClient();
         topK: 40,
       }
     };
+
+    // Check if client is available
+    if (!client) {
+      console.log('⚠️ Gemini client not available, using fallback response');
+      const fallbackResponses = [
+        "I'm currently experiencing technical difficulties. Please try again later.",
+        "I'm temporarily unavailable. Please contact support if this persists.",
+        "I'm having trouble connecting to my AI service. Please try again in a moment."
+      ];
+      const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      return res.json({ success: true, response: fallbackResponse });
+    }
 
     const response = await client.request({
       url,
