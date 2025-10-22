@@ -253,7 +253,7 @@ app.post('/api/gemini', async (req, res) => {
     }
 
 const path = require('path');
-process.env.GOOGLE_APPLICATION_CREDENTIALS = path.join(__dirname, 'credentialss.json');
+process.env.GOOGLE_APPLICATION_CREDENTIALS = path.join(__dirname, 'swasthyalink-468105-143623eabdaa.json');
 
 const auth = new GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/generative-language'],
