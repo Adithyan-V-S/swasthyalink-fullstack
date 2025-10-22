@@ -65,18 +65,24 @@ app.use((req, res, next) => {
 });
 
 // Dialogflow configuration
-const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || 'YOUR_PROJECT_ID';
-const keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS || './credentials.json';
+const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || 'swasthyakink';
 const languageCode = 'en';
 
 // Initialize Dialogflow client
 let sessionClient;
 try {
-  sessionClient = new SessionsClient({
-    keyFilename: path.join(__dirname, keyFilename),
-    projectId: projectId,
-  });
-  console.log('✅ Dialogflow client initialized successfully');
+  // Use environment variables for credentials in production
+  const hasDialogflowCreds = !!(process.env.GOOGLE_CLOUD_PROJECT_ID);
+  
+  if (hasDialogflowCreds) {
+    sessionClient = new SessionsClient({
+      projectId: projectId,
+    });
+    console.log('✅ Dialogflow client initialized successfully (env-based)');
+  } else {
+    console.log('⚠️ Dialogflow credentials not found, using simulated responses');
+    sessionClient = null;
+  }
 } catch (error) {
   console.error('❌ Failed to initialize Dialogflow client:', error.message);
   console.log('🔧 Using simulated responses instead');
