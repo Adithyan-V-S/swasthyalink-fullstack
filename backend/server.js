@@ -242,7 +242,7 @@ app.post('/api/chatbot', async (req, res) => {
 });
 
 // New Gemini API proxy endpoint using API key
-const fetch = require('node-fetch');
+const https = require('https');
 
 app.post('/api/gemini', async (req, res) => {
   try {
@@ -281,21 +281,50 @@ app.post('/api/gemini', async (req, res) => {
 
     console.log('🔑 Making request to Gemini API with key:', apiKey.substring(0, 10) + '...');
 
-    const response = await fetch(url, {
+    // Use https module instead of fetch
+    const postData = JSON.stringify(body);
+    const urlObj = new URL(url);
+    
+    const options = {
+      hostname: urlObj.hostname,
+      port: 443,
+      path: urlObj.pathname + urlObj.search,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+
+    const response = await new Promise((resolve, reject) => {
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => {
+          resolve({
+            status: res.statusCode,
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            json: () => JSON.parse(data)
+          });
+        });
+      });
+
+      req.on('error', (error) => {
+        reject(error);
+      });
+
+      req.write(postData);
+      req.end();
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', response.status, errorData);
+      console.error('Gemini API error:', response.status);
       return res.status(response.status).json({ 
         success: false, 
         error: 'Gemini API error',
-        details: errorData
+        details: 'API request failed'
       });
     }
 
