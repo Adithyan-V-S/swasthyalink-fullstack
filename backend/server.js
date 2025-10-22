@@ -241,8 +241,7 @@ app.post('/api/chatbot', async (req, res) => {
   }
 });
 
-// New Gemini API proxy endpoint
-const { GoogleAuth } = require('google-auth-library');
+// New Gemini API proxy endpoint using API key
 const fetch = require('node-fetch');
 
 app.post('/api/gemini', async (req, res) => {
@@ -252,36 +251,19 @@ app.post('/api/gemini', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Message is required' });
     }
 
-// Use environment variables for Gemini API credentials
-let auth, client;
-try {
-  const credentials = process.env.GEMINI_CREDENTIALS ? JSON.parse(process.env.GEMINI_CREDENTIALS) : null;
-  console.log('🔑 Gemini credentials loaded:', credentials ? 'Yes' : 'No');
-  
-  if (credentials) {
-    // Ensure private key has proper line breaks
-    if (credentials.private_key) {
-      credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.log('⚠️ No Gemini API key found, using fallback response');
+      const fallbackResponses = [
+        "I'm currently experiencing technical difficulties. Please try again later.",
+        "I'm temporarily unavailable. Please contact support if this persists.",
+        "I'm having trouble connecting to my AI service. Please try again in a moment."
+      ];
+      const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      return res.json({ success: true, response: fallbackResponse });
     }
-    
-    auth = new GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/generative-language'],
-      credentials: credentials,
-    });
-    client = await auth.getClient();
-    console.log('✅ Gemini client initialized successfully');
-  } else {
-    console.log('⚠️ No Gemini credentials found, using fallback');
-    auth = null;
-    client = null;
-  }
-} catch (error) {
-  console.error('❌ Failed to initialize Gemini client:', error.message);
-  auth = null;
-  client = null;
-}
 
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const body = {
       contents: [{
@@ -297,47 +279,39 @@ try {
       }
     };
 
-    // Check if client is available
-    if (!client) {
-      console.log('⚠️ Gemini client not available, using fallback response');
-      const fallbackResponses = [
-        "I'm currently experiencing technical difficulties. Please try again later.",
-        "I'm temporarily unavailable. Please contact support if this persists.",
-        "I'm having trouble connecting to my AI service. Please try again in a moment."
-      ];
-      const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-      return res.json({ success: true, response: fallbackResponse });
-    }
+    console.log('🔑 Making request to Gemini API with key:', apiKey.substring(0, 10) + '...');
 
-    const response = await client.request({
-      url,
+    const response = await fetch(url, {
       method: 'POST',
-      data: body,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     });
 
-    if (response.status !== 200) {
-      return res.status(response.status).json({ success: false, error: 'Gemini API error' });
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Gemini API error:', response.status, errorData);
+      return res.status(response.status).json({ 
+        success: false, 
+        error: 'Gemini API error',
+        details: errorData
+      });
     }
 
-    const data = response.data;
+    const data = await response.json();
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
 
+    console.log('✅ Gemini API response received successfully');
     res.json({ success: true, response: generatedText });
   } catch (error) {
     // Improved diagnostics for easier debugging
     const errMsg = error?.message || 'Unknown error';
     console.error('Gemini API proxy error:', errMsg);
-    if (error?.response) {
-      console.error('Gemini API response status:', error.response.status);
-      console.error('Gemini API response data:', error.response.data);
-    } else if (error?.code) {
-      console.error('Gemini API error code:', error.code);
-    }
     res.status(500).json({
       success: false,
       error: 'Internal server error',
       message: errMsg,
-      details: error?.response?.data || null,
     });
   }
 });
