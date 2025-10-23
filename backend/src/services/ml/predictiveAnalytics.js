@@ -3,8 +3,9 @@
  * Provides health risk assessment and predictive insights based on patient data
  */
 
-// Import real ML model for diabetes prediction
+// Import real ML models for diabetes and stroke prediction
 const DiabetesMLModel = require('./diabetesMLModel');
+const StrokeMLModel = require('./strokeMLModel');
 
 class PredictiveAnalyticsService {
   constructor() {
@@ -86,8 +87,10 @@ class PredictiveAnalyticsService {
       },
       stroke: {
         name: 'Stroke Risk',
-        factors: ['age', 'bloodPressure', 'cholesterol', 'smoking', 'bmi'],
-        baseRisk: 0.02
+        diseaseType: 'stroke',
+        factors: ['age', 'bloodPressure', 'cholesterol', 'smoking', 'bmi', 'hypertension', 'heartDisease'],
+        baseRisk: 0.02,
+        isMLModel: true
       },
       kidney: {
         name: 'Kidney Disease Risk',
@@ -271,6 +274,22 @@ class PredictiveAnalyticsService {
     // Use real ML model for diabetes prediction
     if (model.diseaseType === 'diabetes') {
       const mlPrediction = DiabetesMLModel.predict(healthData);
+      if (mlPrediction.success) {
+        return {
+          risk: mlPrediction.probability,
+          level: mlPrediction.riskLevel,
+          category: mlPrediction.riskCategory,
+          confidence: mlPrediction.confidence,
+          interpretation: mlPrediction.interpretation,
+          isMLModel: true,
+          modelInfo: mlPrediction.modelInfo
+        };
+      }
+    }
+
+    // Use real ML model for stroke prediction
+    if (model.diseaseType === 'stroke') {
+      const mlPrediction = StrokeMLModel.predict(healthData);
       if (mlPrediction.success) {
         return {
           risk: mlPrediction.probability,
